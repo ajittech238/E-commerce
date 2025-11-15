@@ -19,6 +19,8 @@ const cartSchema = new mongoose.Schema({
             }
         }
     ],
+    
+    // couponCode: { type: String, default: null },
     couponDiscount : {
         type : Number,
         default : 0

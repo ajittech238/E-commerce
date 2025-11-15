@@ -7,55 +7,51 @@ import { event } from "../model/eventModel.js";
 
 export const addToCart = async (req, res, next) => {
     try {
-        const userId = req.user._id
-        const { productId, quantity, couponCode } = req.body
-
+        const userId = req.user._id;
+        const { productId, quantity } = req.body;
 
         if (!mongoose.Types.ObjectId.isValid(productId)) {
             return next(new ErrorHandler("Enter valid product ID!", 400));
         }
 
-        let cart = await Cart.findOne({ userId });
-        cart = new Cart({
-            userId, items: [{
-                productId, quantity
-            }]
-        })
-
-        const existProduct = await productDetails.findOne({ _id: productId })
-
+        const existProduct = await productDetails.findById(productId);
         if (!existProduct) {
             return next(new ErrorHandler("Product not found!", 404));
         }
 
+        let cart = await Cart.findOne({ userId });
 
-        const existingItem = cart.items.find(item => item.productId.equals(productId))
+        if (!cart) {
+            cart = new Cart({
+                userId,
+                items: [{ productId, quantity }]
+            });
+        } else {
+            const existingItem = cart.items.find(item => 
+                item.productId.equals(productId)
+            );
 
-        if (existingItem) {
-            existingItem.quantity = quantity
+            if (existingItem) {
+                existingItem.quantity = quantity;
+            } else {
+                cart.items.push({ productId, quantity });
+            }
         }
-        else {
-            cart.items.push({
-                productId, quantity
-            })
-        }
 
-        await cart.save()
+        await cart.save();
 
         res.status(200).send({
             success: true,
-            message: "item added to cart",
+            message: "Item added to cart",
             cart
-        })
+        });
 
-
+    } catch (err) {
+        console.error(err);
+        return next(new ErrorHandler(err.message || "Server error", 500));
     }
-    catch (err) {
-        console.error(err)
-        return next(new ErrorHandler(`${err._message}`, 500))
+};
 
-    }
-}
 
 export const getToCart = async (req, res, next) => {
     try {
