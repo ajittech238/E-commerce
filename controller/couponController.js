@@ -105,6 +105,7 @@ export const editCoupon = async (req, res, next) => {
         })
     } catch (err) {
         console.log(err)
+        
         return next(new ErrorHandler("failed to update coupon", 500))
     }
 }
