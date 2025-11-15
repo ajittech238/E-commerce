@@ -1,0 +1,2835 @@
+# Backend API Documentation for Frontend Developers
+
+## 1. Introduction
+This document provides an overview of the backend API endpoints for the e-commerce application. It is designed to help frontend developers integrate with the backend services.
+
+## 2. Authentication
+Many endpoints require authentication. The API uses token-based authentication.
+To authenticate, include the `Authorization` header with the value `Bearer <YOUR_AUTH_TOKEN>` in your requests.
+
+## 3. API Endpoints
+
+### 3.1. Authentication & User Management
+
+#### `POST /api/v1/auth/register`
+*   Description: Registers a new user.
+*   Authentication: None
+[example]
+*   Request Body:
+    
+    {
+        "userName": "string",
+        "email": "string",
+        "password": "string",
+        "phoneNumber": "string"
+    }
+    
+[/example]
+    
+[response]
+*   Response (Success - 201 Created):
+    
+    {
+        "success": true,
+        "message": "User registered successfully",
+        "user": {
+            "_id": "string",
+            "userName": "string",
+            "email": "string",
+            "phoneNumber": "string",
+            "createdAt": "datetime",
+            "updatedAt": "datetime"
+        },
+        "token": "string"
+    }
+    
+[/response]
+    
+
+#### `POST /api/v1/auth/login`
+*   Description: Logs in a user and returns an authentication token.
+*   Authentication: None
+[example]
+*   Request Body:
+    
+    {
+        "email": "string",
+        "password": "string"
+    }
+    
+[/example]
+    
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "Logged in successfully",
+        "user": {
+            "_id": "string",
+            "userName": "string",
+            "email": "string",
+            "createdAt": "datetime",
+            "updatedAt": "datetime"
+        },
+        "token": "string"
+    }
+    
+[/response]
+    
+
+#### `GET /api/v1/auth/google`
+*   Description: Initiates Google OAuth login process. Redirects to Google's authentication page.
+*   Authentication: None
+
+#### `GET /api/v1/auth/google/callback`
+*   Description: Callback URL for Google OAuth. Handles the Google login response.
+*   Authentication: None
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "user login successfully",
+        "user": {
+            "_id": "string",
+            "userName": "string",
+            "email": "string"
+        },
+        "token": "string"
+    }
+    
+[/response]
+    
+
+#### `PATCH /api/v1/auth/updatePassword`
+*   Description: Updates the authenticated user's password.
+*   Authentication: Required (Bearer Token)
+[example]
+*   Request Body:
+    
+    {
+        "oldPassword": "string",
+        "newPassword": "string",
+        "confirmNewPassword": "string"
+    }
+    
+[/example]
+    
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "data": {
+            // ... user object
+        }
+    }
+    
+[/response]
+    
+
+#### `GET /api/v1/auth/me`
+*   Description: Retrieves the profile of the authenticated user.
+*   Authentication: Required (Bearer Token)
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "user": {
+            // ... user object
+        }
+    }
+    
+[/response]
+    
+
+#### `GET /api/v1/auth/logout`
+*   Description: Logs out the authenticated user. Invalidates the current session/token.
+*   Authentication: Required (Bearer Token)
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "logout successfully !"
+    }
+    
+[/response]
+    
+
+#### `POST /api/v1/auth/forget`
+*   Description: Initiates the password reset process by sending a reset link to the user's email.
+*   Authentication: None
+[example]
+*   Request Body:
+    
+    {
+        "email": "string"
+    }
+    
+[/example]
+    
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "email sent to [email] successfully"
+    }
+    
+[/response]
+    
+
+#### `GET /api/v1/auth/profile`
+*   Description: Retrieves specific profile information of the authenticated user.
+*   Authentication: Required (Bearer Token)
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "userdata": {
+            "_id": "string",
+            "userName": "string",
+            "email": "string",
+            "phoneNumber": "string",
+            "address": "string"
+        }
+    }
+    
+[/response]
+    
+
+#### `PUT /api/v1/auth/update`
+*   Description: Updates the profile information of the authenticated user.
+*   Authentication: Required (Bearer Token)
+[example]
+*   Request Body:
+    
+    {
+        "userName": "string",
+        "email": "string",
+        "address": "string",
+        "phoneNumber": "string"
+    }
+    
+[/example]
+    
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "userdata": {
+            // ... updated user fields
+        }
+    }
+    
+[/response]
+    
+
+#### `PUT /api/v1/auth/reset/:token`
+*   Description: Resets the user's password using a reset token.
+*   Authentication: None
+*   URL Parameters:
+    *   `token`: The password reset token received via email.
+[example]
+*   Request Body:
+    
+    {
+        "newPassword": "string",
+        "confirmNewPassword": "string"
+    }
+    
+[/example]
+    
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "password changed successfully !"
+    }
+    
+[/response]
+    
+
+#### `GET /api/v1/auth/user-states`
+*   Description: Retrieves user-related statistics.
+*   Authentication: Required (Bearer Token)
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "states": {
+            "totalOrder": "number",
+            "totalfav": "number"
+        }
+    }
+    
+[/response]
+    
+
+### 3.2. Products
+
+#### `GET /api/v1/product/get`
+*   Description: Retrieves a list of all products.
+*   Authentication: None
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "results": "number",
+        "data": [
+            // ... array of product objects
+        ]
+    }
+    
+[/response]
+    
+
+#### `GET /api/v1/product/get/:categoryId`
+*   Description: Retrieves products by category ID.
+*   Authentication: None
+*   URL Parameters:
+    *   `categoryId`: The ID of the category.
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "data": [
+            // ... array of product objects
+        ]
+    }
+    
+[/response]
+    
+
+#### `POST /api/v1/product/add`
+*   Description: Adds a new product.
+*   Authentication: Required (Bearer Token, Shop Verified)
+[example]
+*   Request Body:
+    
+    {
+        "name": "string",
+        "price": "number",
+        "category": "string",
+        "itemTag": "string",
+        "shippingTag": "string",
+        "discount": "number",
+        "quantity": "number"
+    }
+    
+[/example]
+    
+[response]
+*   Response (Success - 201 Created):
+    
+    {
+        "success": true,
+        "message": "product added successfully ! ",
+        "data": {
+            // ... product object
+        }
+    }
+    
+[/response]
+    
+
+#### `PUT /api/v1/product/update/:id`
+*   Description: Updates a product.
+*   Authentication: Required (Bearer Token, Admin role)
+*   URL Parameters:
+    *   `id`: The ID of the product to update.
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "product updated successfully !",
+        "data": {
+            // ... product object
+        }
+    }
+    
+[/response]
+
+#### `PATCH /api/v1/product/updateOne/:id`
+*   Description: Updates a product.
+*   Authentication: Required (Bearer Token, Admin role)
+*   URL Parameters:
+    *   `id`: The ID of the product to update.
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "product updated successfully !",
+        "data": {
+            // ... product object
+        }
+    }
+    
+[/response]
+
+#### `DELETE /api/v1/product/delete/:id`
+*   Description: Deletes a product.
+*   Authentication: Required (Bearer Token, Admin role)
+*   URL Parameters:
+    *   `id`: The ID of the product to delete.
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "product deleted successfully !"
+    }
+    
+[/response]
+    
+
+#### `GET /api/v1/product/filter`
+*   Description: Filters products based on query parameters.
+*   Authentication: Required (Bearer Token)
+*   Query Parameters: `name`, `shopName`, `category`, `price`, `min`, `max`, `itemTag`, `shippingTag`, `sort`
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "results": "number",
+        "products": [
+            // ... array of product objects
+        ]
+    }
+    
+[/response]
+    
+
+### 3.3. Categories
+
+#### `GET /api/v1/category/`
+*   Description: Retrieves a list of all product categories.
+*   Authentication: Required (Bearer Token, Admin role)
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "mainCategory": [],
+        "giftCategory": [],
+        "homeCategory": [],
+        "fashionCategory": []
+    }
+    
+[/response]
+    
+
+#### `POST /api/v1/category/add`
+*   Description: Adds a new category.
+*   Authentication: Required (Bearer Token, Admin role)
+[example]
+*   Request Body:
+    
+    {
+        "name": "string",
+        "type": "string"
+    }
+    
+[/example]
+    
+[response]
+*   Response (Success - 201 Created):
+    
+    {
+        "success": true,
+        "message": "category added successfully !",
+        "category": {
+            // ... category object
+        }
+    }
+    
+[/response]
+    
+
+#### `DELETE /api/v1/category/:id`
+*   Description: Deletes a category.
+*   Authentication: Required (Bearer Token, Admin role)
+*   URL Parameters:
+    *   `id`: The ID of the category to delete.
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "category deleted successfully!"
+    }
+    
+[/response]
+    
+
+### 3.4. Cart
+
+#### `POST /api/v1/cart/add`
+*   Description: Adds a product to the user's cart.
+*   Authentication: Required (Bearer Token)
+[example]
+*   Request Body:
+    
+    {
+        "productId": "string",
+        "quantity": "number"
+    }
+    
+[/example]
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "item added to cart",
+        "cart": {
+            // ... cart object
+        }
+    }
+    
+[/response]
+    
+
+#### `GET /api/v1/cart/get`
+*   Description: Retrieves the items in the user's cart.
+*   Authentication: Required (Bearer Token)
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "cart": {
+            // ... cart object
+        },
+        "orignalprice": "number",
+        "totalAmount": "number",
+        "discount": "number",
+        "usedwalletamount": "number",
+        "couponDiscount": "number"
+    }
+    
+[/response]
+    
+
+#### `POST /api/v1/cart/clear`
+*   Description: Clears the user's cart.
+*   Authentication: Required (Bearer Token)
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "cart is cleared !"
+    }
+    
+[/response]
+    
+
+#### `PATCH /api/v1/cart/remove`
+*   Description: Removes a product from the user's cart.
+*   Authentication: Required (Bearer Token)
+[example]
+*   Request Body:
+    
+    {
+        "productId": "string"
+    }
+
+[/example]
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "item removed successfully !"
+    }
+    
+[/response]
+    
+
+#### `POST /api/v1/cart/update`
+*   Description: Updates the quantity of a product in the user's cart.
+*   Authentication: Required (Bearer Token)
+[example]
+*   Request Body:
+    
+    {
+        "productId": "string",
+        "quantity": "number"
+    }
+    
+[/example]
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "cart": {
+            // ... cart object
+        }
+    }
+    
+[/response]
+    
+
+### 3.5. Wishlist
+
+#### `GET /api/v1/wishlist/`
+*   Description: Retrieves the items in the user's wishlist.
+*   Authentication: Required (Bearer Token)
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "data": {
+            // ... wishlist object
+        }
+    }
+    
+[/response]
+
+#### `GET /api/v1/wishlist/recent-fav`
+*   Description: Retrieves recently favorited items.
+*   Authentication: Required (Bearer Token)
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "data": [
+            // ... array of product objects
+        ]
+    }
+    
+[/response]
+
+#### `POST /api/v1/wishlist/add`
+*   Description: Adds a product to the user's wishlist.
+*   Authentication: Required (Bearer Token)
+[example]
+*   Request Body:
+    
+    {
+        "productId": "string"
+    }
+    
+[/example]
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "item added to wishlist",
+        "data": {
+            // ... wishlist object
+        }
+    }
+    
+[/response]
+
+#### `POST /api/v1/wishlist/remove`
+*   Description: Removes a product from the user's wishlist.
+*   Authentication: Required (Bearer Token)
+[example]
+*   Request Body:
+    
+    {
+        "productId": "string"
+    }
+    
+[/example]
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "item removed from wishlist"
+    }
+    
+[/response]
+    
+
+### 3.6. Orders
+
+#### `POST /api/v1/order/create`
+*   Description: Creates a new order from the user's cart.
+*   Authentication: Required (Bearer Token)
+[example]
+*   Request Body:
+    
+    {
+        "shippingAddress": "string"
+    }
+    
+[/example]
+[response]
+*   Response (Success - 201 Created):
+    
+    {
+        "success": true,
+        "message": "order confirmed !",
+        "data": {
+            // ... order object
+        },
+        "scratch_card": {
+            // ... scratch card object
+        }
+    }
+    
+[/response]
+    
+
+#### `GET /api/v1/order/my-order`
+*   Description: Retrieves a list of the user's orders.
+*   Authentication: Required (Bearer Token)
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "results": "number",
+        "data": [
+            // ... array of order objects
+        ]
+    }
+
+[/response]
+    
+
+#### `GET /api/v1/order/all-order`
+*   Description: Retrieves a list of all orders.
+*   Authentication: Required (Bearer Token, Admin role)
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "results": "number",
+        "data": [
+            // ... array of order objects
+        ]
+    }
+    
+[/response]
+    
+
+#### `GET /api/v1/order/recent-order`
+*   Description: Retrieves a list of recent orders for the authenticated user.
+*   Authentication: Required (Bearer Token)
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "results": "number",
+        "data": [
+            // ... array of order objects
+        ]
+    }
+    
+[/response]
+    
+
+#### `PUT /api/v1/order/cancel/:orderId`
+*   Description: Cancels an order.
+*   Authentication: Required (Bearer Token)
+*   URL Parameters:
+    *   `orderId`: The ID of the order to cancel.
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "order cancelled successfully !",
+        "data": {
+            // ... order object
+        }
+    }
+    
+[/response]
+    
+
+#### `PATCH /api/v1/order/update/:orderId`
+*   Description: Updates an order.
+*   Authentication: Required (Bearer Token, Admin role)
+*   URL Parameters:
+    *   `orderId`: The ID of the order to update.
+[example]
+*   Request Body:
+    
+    {
+        "shippingAddress": "string",
+        "shippingStatus": "string"
+    }
+    
+[/example]
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "order updated successfully !",
+        "data": {
+            // ... order object
+        }
+    }
+    
+[/response]
+    
+
+### 3.7. Reviews
+
+#### `POST /api/v1/review/create`
+*   Description: Creates a new review for a product.
+*   Authentication: Required (Bearer Token)
+[example]
+*   Request Body:
+    
+    {
+        "productId": "string",
+        "rating": "number",
+        "comment": "string"
+    }
+    
+[/example]
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "review added successfully!",
+        "data": {
+            // ... review object
+        }
+    }
+    
+[/response]
+    
+
+#### `GET /api/v1/review/Allreviews`
+*   Description: Retrieves all reviews.
+*   Authentication: Required (Bearer Token)
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "data": [
+            // ... array of review objects
+        ]
+    }
+    
+[/response]
+    
+
+#### `GET /api/v1/review/getreviews/:id`
+*   Description: Retrieves reviews for a product.
+*   Authentication: Required (Bearer Token)
+*   URL Parameters:
+    *   `id`: The ID of the product.
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "results": "number",
+        "data": {
+            // ... review object
+        }
+    }
+    
+[/response]
+    
+
+#### `PATCH /api/v1/review/update/:id`
+*   Description: Updates a review.
+*   Authentication: Required (Bearer Token)
+*   URL Parameters:
+    *   `id`: The ID of the product.
+[example]
+*   Request Body:
+    
+    {
+        "comment": "string",
+        "rating": "number"
+    }
+    
+[/example]
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "review updated !",
+        "data": {
+            // ... review object
+        }
+    }
+    
+[/response]
+    
+
+#### `DELETE /api/v1/review/delete/:id`
+*   Description: Deletes a review.
+*   Authentication: None
+*   URL Parameters:
+    *   `id`: The ID of the product.
+[example]
+*   Request Body:
+    
+    {
+        "userId": "string"
+    }
+    
+[/example]
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "review deleted !"
+    }
+    
+[/response]
+    
+
+### 3.8. Shop
+
+#### `POST /api/v1/shop/create`
+*   Description: Creates a new shop.
+*   Authentication: Required (Bearer Token)
+[example]
+*   Request Body:
+    
+    {
+        "shopName": "string",
+        "location": "string",
+        "contactNumber": "string"
+    }
+    
+[/example]
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "shop created succssfully !",
+        "data": {
+            // ... shop object
+        }
+    }
+    
+[/response]
+    
+
+#### `GET /api/v1/shop/myshop`
+*   Description: Retrieves the shop of the authenticated user.
+*   Authentication: Required (Bearer Token, Shop Verified)
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "data": {
+            // ... shop object
+        }
+    }
+    
+[/response]
+    
+
+#### `GET /api/v1/shop/myshopProduct`
+*   Description: Retrieves the products of the authenticated user's shop.
+*   Authentication: Required (Bearer Token, Shop Verified)
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "productData": [
+            // ... array of product objects
+        ]
+    }
+    
+[/response]
+    
+
+#### `GET /api/v1/shop/allshop`
+*   Description: Retrieves all shops.
+*   Authentication: None
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "data": [
+            // ... array of shop objects
+        ]
+    }
+    
+[/response]
+    
+
+#### `GET /api/v1/shop/Oneshop/:id`
+*   Description: Retrieves a single shop by its ID.
+*   Authentication: Required (Bearer Token)
+*   URL Parameters:
+    *   `id`: The ID of the shop.
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "data": {
+            // ... shop object
+        }
+    }
+    
+[/response]
+    
+
+#### `GET /api/v1/shop/getShopProduct/:id`
+*   Description: Retrieves the products of a shop.
+*   Authentication: None
+*   URL Parameters:
+    *   `id`: The ID of the shop.
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "productData": [
+            // ... array of product objects
+        ]
+    }
+    
+[/response]
+    
+
+#### `PATCH /api/v1/shop/updateShop/:id`
+*   Description: Updates a shop's details.
+*   Authentication: None
+*   URL Parameters:
+    *   `id`: The ID of the shop to update.
+[example]
+*   Request Body:
+    
+    {
+        "shopName": "string",
+        "contactNumber": "string",
+        "location": "string",
+        "isShopVerified": "boolean"
+    }
+    
+[/example]
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "shop details updated !",
+        "data": {
+            // ... shop object
+        }
+    }
+    
+[/response]
+    
+
+#### `PATCH /api/v1/shop/disable/:id`
+*   Description: Disables a shop.
+*   Authentication: None
+*   URL Parameters:
+    *   `id`: The ID of the shop to disable.
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "shop is disabled"
+    }
+    
+[/response]
+    
+
+### 3.9. Admin
+
+#### `GET /api/v1/admin/user`
+*   Description: Retrieves a list of all users.
+*   Authentication: Required (Bearer Token, Admin role)
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "data": [
+            // ... array of user objects
+        ]
+    }
+    
+[/response]
+    
+
+#### `PATCH /api/v1/admin/ban/:id`
+*   Description: Bans or unbans a user.
+*   Authentication: Required (Bearer Token, Admin role)
+*   URL Parameters:
+    *   `id`: The ID of the user to ban/unban.
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "user banned/unbanned successfully !",
+        "data": {
+            // ... user object
+        }
+    }
+    
+[/response]
+    
+
+#### `DELETE /api/v1/admin/delete/:id`
+*   Description: Deletes a user.
+*   Authentication: Required (Bearer Token, Admin role)
+*   URL Parameters:
+    *   `id`: The ID of the user to delete.
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "user deleted successfully !",
+        "data": {
+            // ... user object
+        }
+    }
+    
+[/response]
+    
+
+#### `PATCH /api/v1/admin/role/:id`
+*   Description: Changes the role of a user.
+*   Authentication: Required (Bearer Token, Admin role)
+*   URL Parameters:
+    *   `id`: The ID of the user to update.
+[example]
+*   Request Body:
+    
+    {
+        "role": "string"
+    }
+    
+[/example]
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "user update role is [role] !",
+        "data": {
+            // ... user object
+        }
+    }
+    
+[/response]
+    
+
+### 3.10. Chatbot
+
+#### `POST /api/v1/chatbot/ask`
+*   Description: Asks a question to the Gemini chatbot (streaming response).
+*   Authentication: Required (Bearer Token)
+[example]
+*   Request Body:
+    
+    {
+        "question": "string"
+    }
+    
+[/example]
+    
+
+#### `POST /api/v1/chatbot/ask2`
+*   Description: Asks a question to the Gemini chatbot (non-streaming response).
+*   Authentication: Required (Bearer Token)
+[example]
+*   Request Body:
+    
+    {
+        "question": "string"
+    }
+    
+[/example]
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "response": "string"
+    }
+    
+[/response]
+    
+
+#### `PATCH /api/v1/chatbot/close`
+*   Description: Closes the active chat conversation.
+*   Authentication: Required (Bearer Token)
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "chat is closed !"
+    }
+    
+[/response]
+    
+
+#### `GET /api/v1/chatbot/history`
+*   Description: Retrieves the chat history of the authenticated user.
+*   Authentication: Required (Bearer Token)
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "total_conversation": "number",
+        "convertsation": [
+            // ... array of conversation objects
+        ]
+    }
+    
+[/response]
+    
+
+#### `GET /api/v1/chatbot/history/:id`
+*   Description: Retrieves the chat history of a user by their ID.
+*   Authentication: None
+*   URL Parameters:
+    *   `id`: The ID of the user.
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "total_conversation": "number",
+        "convertsation": [
+            // ... array of conversation objects
+        ]
+    }
+    
+[/response]
+    
+
+### 3.11. Coupon
+
+#### `GET /api/v1/coupon/get`
+*   Description: Retrieves a list of all coupons.
+*   Authentication: None
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "results": "number",
+        "data": [
+            // ... array of coupon objects
+        ]
+    }
+    
+[/response]
+    
+
+#### `POST /api/v1/coupon/create`
+*   Description: Creates a new coupon.
+*   Authentication: Required (Bearer Token)
+[example]
+*   Request Body:
+    
+    {
+        "couponTitle": "string",
+        "couponCode": "string",
+        "couponExpiry": "date",
+        "couponDiscount": "number",
+        "useLimit": "number"
+    }
+    
+[/example]
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "data": {
+            // ... coupon object
+        }
+    }
+    
+[/response]
+    
+
+#### `PATCH /api/v1/coupon/edit/:id`
+*   Description: Edits a coupon.
+*   Authentication: None
+*   URL Parameters:
+    *   `id`: The ID of the coupon to edit.
+[example]
+*   Request Body:
+    
+    {
+        "couponTitle": "string",
+        "couponCode": "string",
+        "couponExpiry": "date",
+        "couponDiscount": "number"
+    }
+    
+[/example]
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "coupon upadated successfully !",
+        "data": {
+            // ... coupon object
+        }
+    }
+    
+[/response]
+    
+
+#### `DELETE /api/v1/coupon/delete/:id`
+*   Description: Deletes a coupon.
+*   Authentication: Required (Bearer Token)
+*   URL Parameters:
+    *   `id`: The ID of the coupon to delete.
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "coupon deleted successfully !"
+    }
+    
+[/response]
+    
+
+#### `POST /api/v1/coupon/applyCoupon`
+*   Description: Applies a coupon to the user's cart.
+*   Authentication: Required (Bearer Token)
+[example]
+*   Request Body:
+    
+    {
+        "couponCode": "string"
+    }
+    
+[/example]
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "coupon applied successfully !"
+    }
+    
+[/response]
+    
+
+#### `POST /api/v1/coupon/removeCoupon`
+*   Description: Removes a coupon from the user's cart.
+*   Authentication: Required (Bearer Token)
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "coupon removed successfully !"
+    }
+    
+[/response]
+    
+
+### 3.12. Department
+
+#### `GET /api/v1/department/`
+*   Description: Retrieves a list of all departments.
+*   Authentication: None
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "data": [
+            // ... array of department objects
+        ]
+    }
+    
+[/response]
+    
+
+#### `POST /api/v1/department/add`
+*   Description: Adds a new department.
+*   Authentication: None
+[example]
+*   Request Body:
+    
+    {
+        "departmentName": "string"
+    }
+    
+[/example]
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "data": {
+            // ... department object
+        }
+    }
+    
+[/response]
+    
+
+#### `PATCH /api/v1/department/update/:id`
+*   Description: Updates a department.
+*   Authentication: None
+*   URL Parameters:
+    *   `id`: The ID of the department to update.
+[example]
+*   Request Body:
+    
+    {
+        "departmentName": "string"
+    }
+    
+[/example]
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "data": {
+            // ... department object
+        }
+    }
+    
+[/response]
+    
+
+#### `DELETE /api/v1/department/delete/:id`
+*   Description: Deletes a department.
+*   Authentication: None
+*   URL Parameters:
+    *   `id`: The ID of the department to delete.
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "department deleted successfully !"
+    }
+    
+[/response]
+    
+
+### 3.13. Email
+
+#### `POST /api/v1/email/sendAll`
+*   Description: Sends an email to all users.
+*   Authentication: Required (Bearer Token, Admin role)
+[example]
+*   Request Body:
+    
+    {
+        "subject": "string",
+        "message": "string"
+    }
+    
+[/example]
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "emaillist": [
+            // ... array of email addresses
+        ],
+        "message": "email sent successfully !"
+    }
+    
+[/response]
+    
+
+#### `POST /api/v1/email/send/:id`
+*   Description: Sends an email to a specific user.
+*   Authentication: Required (Bearer Token)
+*   URL Parameters:
+    *   `id`: The ID of the user to send an email to.
+[example]
+*   Request Body:
+    
+    {
+        "subject": "string",
+        "message": "string"
+    }
+    
+[/example]
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "email send successfully !"
+    }
+    
+[/response]
+    
+
+### 3.14. Employee
+
+#### `POST /api/v1/employee/add`
+*   Description: Adds a new employee.
+*   Authentication: Required (Bearer Token, Admin role)
+[example]
+*   Request Body:
+    
+    {
+        "userName": "string",
+        "email": "string",
+        "password": "string",
+        "role": "string",
+        "phoneNumber": "string",
+        "address": "string",
+        "dateOfBirth": "date",
+        "gender": "string",
+        "maritalStatus": "string",
+        "employeeId": "string",
+        "nationality": "string",
+        "emergencyContactName": "string",
+        "emergencyContactNumber": "string",
+        "department": "string",
+        "designation": "string",
+        "dateOfJoined": "date",
+        "contractType": "string",
+        "salary": "number",
+        "bankAccount": "string",
+        "taxId": "string"
+    }
+    
+[/example]
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "employee added Successfully !",
+        "newEmployee": {
+            // ... employee object
+        }
+    }
+    
+[/response]
+    
+
+#### `GET /api/v1/employee/get`
+*   Description: Retrieves a list of all employees.
+*   Authentication: Required (Bearer Token, Admin role)
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "results": "number",
+        "data": [
+            // ... array of employee objects
+        ]
+    }
+    
+[/response]
+    
+
+#### `GET /api/v1/employee/getone/:id`
+*   Description: Retrieves a single employee by their ID.
+*   Authentication: Required (Bearer Token, Admin role)
+*   URL Parameters:
+    *   `id`: The ID of the employee.
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "data": {
+            // ... employee object
+        }
+    }
+    
+[/response]
+    
+
+#### `PATCH /api/v1/employee/update/:id`
+*   Description: Updates an employee's information.
+*   Authentication: Required (Bearer Token, Admin role)
+*   URL Parameters:
+    *   `id`: The ID of the employee to update.
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "employee updated Successfully !",
+        "newEmployee": {
+            // ... employee object
+        }
+    }
+    
+[/response]
+    
+
+#### `PATCH /api/v1/employee/disable/:id`
+*   Description: Disables or enables an employee.
+*   Authentication: Required (Bearer Token, Admin role)
+*   URL Parameters:
+    *   `id`: The ID of the employee to disable/enable.
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "employee id disabled/enabled"
+    }
+    
+[/response]
+    
+
+#### `POST /api/v1/employee/addSalary`
+*   Description: Adds a salary for an employee.
+*   Authentication: Required (Bearer Token, Admin role)
+[example]
+*   Request Body:
+    
+    {
+        "user_Id": "string",
+        "employeeId": "string",
+        "employeeName": "string",
+        "amount": "number",
+        "allowances": "number",
+        "deductions": "number"
+    }
+    
+[/example]
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "salary has been added !"
+    }
+    
+[/response]
+    
+
+#### `GET /api/v1/employee/getSalary/:id`
+*   Description: Retrieves the salary history for an employee.
+*   Authentication: Required (Bearer Token, Admin role)
+*   URL Parameters:
+    *   `id`: The employee ID.
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "results": "number",
+        "salaryHistory": [
+            // ... array of salary objects
+        ]
+    }
+    
+[/response]
+    
+
+#### `GET /api/v1/employee/getSalary`
+*   Description: Retrieves the salary history for the authenticated employee.
+*   Authentication: Required (Bearer Token, Employee role)
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "results": "number",
+        "salaryHistory": [
+            // ... array of salary objects
+        ]
+    }
+    
+[/response]
+    
+
+#### `POST /api/v1/employee/leave`
+*   Description: Applies for a leave.
+*   Authentication: Required (Bearer Token, Employee/Admin role)
+[example]
+*   Request Body:
+    
+    {
+        "leaveType": "string",
+        "from": "date",
+        "to": "date",
+        "description": "string"
+    }
+    
+[/example]
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "data": {
+            // ... leave object
+        }
+    }
+    
+[/response]
+    
+
+#### `GET /api/v1/employee/checkleave`
+*   Description: Checks the leave status for the authenticated employee.
+*   Authentication: Required (Bearer Token, Employee/Admin role)
+*   Query Parameters: `status`
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "results": "number",
+        "data": [
+            // ... array of leave objects
+        ]
+    }
+    
+[/response]
+    
+
+#### `GET /api/v1/employee/checkleaves`
+*   Description: Checks all leaves.
+*   Authentication: Required (Bearer Token, Admin role)
+*   Query Parameters: `status`
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "results": "number",
+        "data": [
+            // ... array of leave objects
+        ]
+    }
+    
+[/response]
+    
+
+#### `PATCH /api/v1/employee/approveleaves`
+*   Description: Approves or rejects a leave.
+*   Authentication: Required (Bearer Token, Admin role)
+[example]
+*   Request Body:
+    
+    {
+        "leaveId": "string",
+        "status": "string"
+    }
+    
+[/example]
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "data": {
+            // ... leave object
+        }
+    }
+    
+[/response]
+    
+
+#### `GET /api/v1/employee/dashboard/overview`
+*   Description: Retrieves an overview of the employee dashboard.
+*   Authentication: Required (Bearer Token, Admin role)
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "total_employee": "number",
+        "total_department": "number",
+        "total_salary": "number",
+        "total_leave": "number",
+        "pending_leave": "number",
+        "approved_leave": "number",
+        "rejected_leave": "number"
+    }
+    
+[/response]
+    
+
+### 3.15. Event
+
+#### `POST /api/v1/event/create`
+*   Description: Creates a new event.
+*   Authentication: None
+[example]
+*   Request Body:
+    
+    {
+        "eventName": "string",
+        "eventType": "string",
+        "description": "string",
+        "startDate": "date",
+        "endDate": "date",
+        "discount": "number",
+        "maxDiscountAmount": "number",
+        "minPurchaseAmount": "number",
+        "categories": ["string"],
+        "bannerUrl": "string",
+        "priority": "number"
+    }
+    
+[/example]
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "event [eventName] created !",
+        "data": {
+            // ... event object
+        }
+    }
+    
+[/response]
+    
+
+#### `GET /api/v1/event/getEvents`
+*   Description: Retrieves a list of all events.
+*   Authentication: None
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "results": "number",
+        "data": [
+            // ... array of event objects
+        ]
+    }
+    
+[/response]
+    
+
+#### `PATCH /api/v1/event/update/:id`
+*   Description: Updates an event.
+*   Authentication: None
+*   URL Parameters:
+    *   `id`: The ID of the event to update.
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "event [eventName] updated !",
+        "data": {
+            // ... event object
+        }
+    }
+    
+[/response]
+    
+
+#### `POST /api/v1/event/stopall`
+*   Description: Stops all active events.
+*   Authentication: None
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "all event are stopped !"
+    }
+    
+[/response]
+    
+
+#### `POST /api/v1/event/stop/:id`
+*   Description: Stops a specific event.
+*   Authentication: None
+*   URL Parameters:
+    *   `id`: The ID of the event to stop.
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "event [eventName] is deactive  !"
+    }
+    
+[/response]
+    
+
+#### `POST /api/v1/event/active/:id`
+*   Description: Activates a specific event.
+*   Authentication: None
+*   URL Parameters:
+    *   `id`: The ID of the event to activate.
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "event is active [eventName] !"
+    }
+    
+[/response]
+    
+
+### 3.16. Invoice
+
+#### `POST /api/v1/invoice/create`
+*   Description: Creates a new invoice for an order.
+*   Authentication: Required (Bearer Token)
+[example]
+*   Request Body:
+    
+    {
+        "orderId": "string"
+    }
+    
+[/example]
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "invoice created successfully !",
+        "invoiceData": {
+            // ... invoice object
+        }
+    }
+    
+[/response]
+    
+
+#### `POST /api/v1/invoice/get`
+*   Description: Retrieves an invoice for an order.
+*   Authentication: None
+[example]
+*   Request Body:
+    
+    {
+        "orderId": "string"
+    }
+    
+[/example]
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "data": {
+            // ... invoice object
+        }
+    }
+    
+[/response]
+    
+
+#### `GET /api/v1/invoice/download/:id`
+*   Description: Downloads an invoice as a PDF.
+*   Authentication: None
+*   URL Parameters:
+    *   `id`: The order ID of the invoice to download.
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "Invoice downloaded successfully!"
+    }
+    
+[/response]
+
+### 3.17. Notification
+
+#### `GET /api/v1/notification/get`
+*   Description: Retrieves all notifications for the authenticated user.
+*   Authentication: Required (Bearer Token)
+*   Query Parameters: `page`, `limit`
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "count": "number",
+        "data": [
+            // ... array of notification objects
+        ]
+    }
+    
+[/response]
+    
+
+#### `POST /api/v1/notification/create`
+*   Description: Sends a notification to all users.
+*   Authentication: Required (Bearer Token, Admin role)
+[example]
+*   Request Body:
+    
+    {
+        "title": "string",
+        "message": "string",
+        "link": "string",
+        "type": "string"
+    }
+    
+[/example]
+[response]
+*   Response (Success - 201 Created):
+    
+    {
+        "success": true,
+        "message": "notification sended to all users"
+    }
+    
+[/response]
+    
+#### `DELETE /api/v1/notification/delete/:id`
+*   Description: Deletes a notification.
+*   Authentication: Required (Bearer Token)
+*   URL Parameters:
+    *   `id`: The ID of the notification to delete.
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "notification deleted successfully !"
+    }
+    
+[/response]
+    
+
+#### `DELETE /api/v1/notification/clear`
+*   Description: Clears all notifications for the authenticated user.
+*   Authentication: Required (Bearer Token)
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "all notification are cleared successfully !"
+    }
+    
+[/response]
+    
+
+### 3.18. Rack
+
+#### `GET /api/v1/rack/`
+*   Description: Retrieves all racks.
+*   Authentication: None
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "data": [
+            // ... array of rack objects
+        ]
+    }
+    
+[/response]
+    
+
+#### `POST /api/v1/rack/`
+*   Description: Adds a new rack row.
+*   Authentication: None
+[example]
+*   Request Body:
+    
+    {
+        "warehouseId": "string",
+        "rowNumber": "number",
+        "rackNumber": "number"
+    }
+    
+[/example]
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "data": {
+            // ... rack object
+        }
+    }
+    
+[/response]
+    
+
+#### `PATCH /api/v1/rack/:id`
+*   Description: Updates a rack row.
+*   Authentication: None
+*   URL Parameters:
+    *   `id`: The ID of the rack to update.
+[example]
+*   Request Body:
+    
+    {
+        "rowNumber": "number",
+        "rackNumber": "number"
+    }
+    
+[/example]
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "data": {
+            // ... rack object
+        }
+    }
+    
+[/response]
+    
+
+#### `DELETE /api/v1/rack/:id`
+*   Description: Deletes a rack.
+*   Authentication: None
+*   URL Parameters:
+    *   `id`: The ID of the rack to delete.
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "rack deleted successfully !"
+    }
+    
+[/response]
+    
+
+#### `POST /api/v1/rack/addToRack`
+*   Description: Adds a product to a rack.
+*   Authentication: None
+[example]
+*   Request Body:
+    
+    {
+        "rackId": "string",
+        "warehouseProductId": "string",
+        "quantity": "number"
+    }
+    
+[/example]
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "data": {
+            // ... rack product object
+        }
+    }
+    
+[/response]
+    
+
+#### `GET /api/v1/rack/getByRack/:id`
+*   Description: Retrieves products from a rack.
+*   Authentication: None
+*   URL Parameters:
+    *   `id`: The ID of the rack.
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "data": [
+            // ... array of rack product objects
+        ]
+    }
+    
+[/response]
+    
+
+#### `PATCH /api/v1/rack/updateToRack/:id`
+*   Description: Updates a product in a rack.
+*   Authentication: None
+*   URL Parameters:
+    *   `id`: The ID of the rack product to update.
+[example]
+*   Request Body:
+    
+    {
+        "quantity": "number"
+    }
+    
+[/example]
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "data": {
+            // ... rack product object
+        }
+    }
+    
+[/response]
+    
+
+#### `DELETE /api/v1/rack/deleteFromRack/:rackId/:warehouseProductId`
+*   Description: Deletes a product from a rack.
+*   Authentication: None
+*   URL Parameters:
+    *   `rackId`: The ID of the rack.
+    *   `warehouseProductId`: The ID of the warehouse product.
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "product deleted from rack successfully !"
+    }
+    
+[/response]
+    
+
+### 3.19. Return
+
+#### `POST /api/v1/return/returnRequest`
+*   Description: Creates a return request for an order.
+*   Authentication: Required (Bearer Token)
+[example]
+*   Request Body:
+    
+    {
+        "orderId": "string",
+        "reason": "string"
+    }
+    
+[/example]
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "data": {
+            // ... return request object
+        }
+    }
+    
+[/response]
+    
+
+#### `GET /api/v1/return/allRequest`
+*   Description: Retrieves all return requests.
+*   Authentication: Required (Bearer Token)
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "data": [
+            // ... array of return request objects
+        ]
+    }
+    
+[/response]
+    
+
+#### `GET /api/v1/return/request/:id`
+*   Description: Retrieves a single return request by its ID.
+*   Authentication: Required (Bearer Token)
+*   URL Parameters:
+    *   `id`: The ID of the return request.
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "data": {
+            // ... return request object
+        }
+    }
+    
+[/response]
+    
+
+#### `POST /api/v1/return/approveRequest`
+*   Description: Approves a return request.
+*   Authentication: Required (Bearer Token)
+[example]
+*   Request Body:
+    
+    {
+        "requestId": "string"
+    }
+    
+[/example]
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "request approved successfully !"
+    }
+    
+[/response]
+    
+
+#### `PATCH /api/v1/return/rejectRequest`
+*   Description: Rejects a return request.
+*   Authentication: Required (Bearer Token)
+[example]
+*   Request Body:
+    
+    {
+        "requestId": "string"
+    }
+    
+[/example]
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "request rejected successfully !"
+    }
+    
+[/response]
+    
+
+#### `PUT /api/v1/return/updateRequest/:id`
+*   Description: Updates a return request.
+*   Authentication: Required (Bearer Token)
+*   URL Parameters:
+    *   `id`: The ID of the return request to update.
+[example]
+*   Request Body:
+    
+    {
+        "status": "string"
+    }
+    
+[/example]
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "data": {
+            // ... return request object
+        }
+    }
+    
+[/response]
+    
+
+#### `POST /api/v1/return/refundToWallet`
+*   Description: Refunds the payment for a return request to the user's wallet.
+*   Authentication: Required (Bearer Token)
+[example]
+*   Request Body:
+    
+    {
+        "requestId": "string"
+    }
+    
+[/example]
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "refund to wallet successfully !"
+    }
+    
+[/response]
+    
+
+#### `POST /api/v1/return/refundToRazorpay`
+*   Description: Refunds the payment for a return request to Razorpay.
+*   Authentication: Required (Bearer Token)
+[example]
+*   Request Body:
+    
+    {
+        "requestId": "string"
+    }
+    
+[/example]
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "refund to razorpay successfully !"
+    }
+    
+[/response]
+    
+
+### 3.20. QNA
+
+#### `GET /api/v1/qna/get`
+*   Description: Retrieves all Q&A items.
+*   Authentication: None
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "data": [
+            // ... array of Q&A objects
+        ]
+    }
+    
+[/response]
+    
+
+#### `GET /api/v1/qna/get/:id`
+*   Description: Retrieves a single Q&A item by its ID.
+*   Authentication: None
+*   URL Parameters:
+    *   `id`: The ID of the Q&A item.
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "data": {
+            // ... Q&A object
+        }
+    }
+    
+[/response]
+    
+
+#### `POST /api/v1/qna/create`
+*   Description: Creates a new Q&A item.
+*   Authentication: None
+[example]
+*   Request Body:
+    
+    {
+        "question": "string",
+        "answer": "string"
+    }
+    
+[/example]
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "qna created !",
+        "data": {
+            // ... Q&A object
+        }
+    }
+    
+[/response]
+    
+
+#### `PUT /api/v1/qna/update/:id`
+*   Description: Updates a Q&A item.
+*   Authentication: None
+*   URL Parameters:
+    *   `id`: The ID of the Q&A item to update.
+[example]
+*   Request Body:
+    
+    {
+        "question": "string",
+        "answer": "string"
+    }
+    
+[/example]
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "data": {
+            // ... Q&A object
+        }
+    }
+    
+[/response]
+    
+
+#### `DELETE /api/v1/qna/delete/:id`
+*   Description: Deletes a Q&A item.
+*   Authentication: None
+*   URL Parameters:
+    *   `id`: The ID of the Q&A item to delete.
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "qna deleted succesfully !"
+    }
+    
+[/response]
+    
+
+### 3.21. Refer & Earn
+
+#### `GET /api/v1/refer/myrefer`
+*   Description: Retrieves the referral data for the authenticated user.
+*   Authentication: Required (Bearer Token)
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "myreferalData": {
+            // ... referral data object
+        }
+    }
+    
+[/response]
+    
+
+#### `GET /api/v1/refer/allrefer`
+*   Description: Retrieves all referral data.
+*   Authentication: Required (Bearer Token)
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "referalData": [
+            // ... array of referral data objects
+        ]
+    }
+    
+[/response]
+    
+
+#### `GET /api/v1/refer/userrefer/:id`
+*   Description: Retrieves the referral data for a specific user.
+*   Authentication: Required (Bearer Token)
+*   URL Parameters:
+    *   `id`: The ID of the user.
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "userreferalData": {
+            // ... referral data object
+        }
+    }
+    
+[/response]
+    
+
+#### `GET /api/v1/refer/referDashboard`
+*   Description: Retrieves the referral dashboard data.
+*   Authentication: Required (Bearer Token)
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "userreferalData": {
+            // ... referral dashboard data object
+        }
+    }
+    
+[/response]
+    
+
+### 3.22. Reward
+
+#### `GET /api/v1/reward/`
+*   Description: Base reward route.
+*   Authentication: None
+
+#### `GET /api/v1/reward/random`
+*   Description: Retrieves a random reward.
+*   Authentication: None
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        // ... reward object
+    }
+    
+[/response]
+    
+
+#### `GET /api/v1/reward/rewardlist`
+*   Description: Retrieves a list of all rewards.
+*   Authentication: None
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "data": [
+            // ... array of reward objects
+        ]
+    }
+    
+[/response]
+    
+
+#### `POST /api/v1/reward/create`
+*   Description: Creates a new reward.
+*   Authentication: None
+[example]
+*   Request Body:
+    
+    {
+        "type": "string",
+        "value": "number",
+        "probability": "number",
+        "isActive": "boolean",
+        "expiresAt": "date"
+    }
+    
+[/example]
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "data": {
+            // ... reward object
+        }
+    }
+    
+[/response]
+    
+
+#### `PATCH /api/v1/reward/edit/:id`
+*   Description: Edits a reward.
+*   Authentication: None
+*   URL Parameters:
+    *   `id`: The ID of the reward to edit.
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "data": {
+            // ... reward object
+        }
+    }
+    
+[/response]
+    
+
+#### `DELETE /api/v1/reward/delete/:id`
+*   Description: Deletes a reward.
+*   Authentication: None
+*   URL Parameters:
+    *   `id`: The ID of the reward to delete.
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "reward deleted successfully !"
+    }
+    
+[/response]
+    
+
+### 3.23. Scratch Card
+
+#### `GET /api/v1/scratch/myscratch`
+*   Description: Retrieves all scratch cards for the authenticated user.
+*   Authentication: Required (Bearer Token)
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "results": "number",
+        "data": [
+            // ... array of scratch card objects
+        ]
+    }
+    
+[/response]
+    
+
+#### `POST /api/v1/scratch/scratch/:id`
+*   Description: Scratches a scratch card.
+*   Authentication: Required (Bearer Token)
+*   URL Parameters:
+    *   `id`: The ID of the scratch card to scratch.
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "data": {
+            // ... scratch card object
+        }
+    }
+    
+[/response]
+    
+
+### 3.24. Transaction
+
+#### `GET /api/v1/transaction/checkBalance`
+*   Description: Retrieves the wallet balance for the authenticated user.
+*   Authentication: Required (Bearer Token)
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "balance": "number"
+    }
+    
+
+#### `POST /api/v1/transaction/addMoney`
+*   Description: Adds money to the user's wallet.
+*   Authentication: Required (Bearer Token)
+*   Request Body:
+    
+    {
+        "amount": "number",
+        "description": "string"
+    }
+    
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "balance": "number",
+        "transation": {
+            // ... transaction object
+        }
+    }
+    
+
+#### `POST /api/v1/transaction/applyWallet`
+*   Description: Applies the wallet balance to the user's cart.
+*   Authentication: Required (Bearer Token)
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "wallet applied successfully !"
+    }
+    
+
+#### `POST /api/v1/transaction/unapplyWallet`
+*   Description: Unapplies the wallet balance from the user's cart.
+*   Authentication: Required (Bearer Token)
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "wallet unapplied successfully !"
+    }
+    
+
+### 3.25. WhatsApp
+
+#### `POST /api/v1/whatsapp/message`
+*   Description: Generates a WhatsApp chat link for a user.
+*   Authentication: None
+*   Request Body:
+    
+    {
+        "userId": "string"
+    }
+    
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "walink": "string"
+    }
+    
+
+### 3.26. Razorpay
+
+#### `POST /api/v1/razorpay/create-order`
+*   Description: Creates a Razorpay order.
+*   Authentication: Required (Bearer Token)
+[example]
+*   Request Body:
+    
+    {
+        "amount": "number"
+    }
+    
+[/example]
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "order": {
+            // ... razorpay order object
+        }
+    }
+    
+[/response]
+
+#### `POST /api/v1/razorpay/verify-payment`
+*   Description: Verifies a Razorpay payment.
+*   Authentication: Required (Bearer Token)
+[example]
+*   Request Body:
+    
+    {
+        "razorpay_order_id": "string",
+        "razorpay_payment_id": "string",
+        "razorpay_signature": "string"
+    }
+    
+[/example]
+[response]
+*   Response (Success - 200 OK):
+    
+    {
+        "success": true,
+        "message": "Payment verified successfully"
+    }
+    
+[/response]
+
+## 4. Error Handling
+All error responses will follow a consistent JSON structure:
+
+{
+    "success": false,
+    "message": "A descriptive error message"
+}

@@ -1,0 +1,2001 @@
+# Backend API Documentation for Frontend Developers
+
+## 1. Introduction
+This document provides an overview of the backend API endpoints for the e-commerce application. It is designed to help frontend developers integrate with the backend services.
+
+## 2. Authentication
+Many endpoints require authentication. The API uses token-based authentication.
+To authenticate, include the `Authorization` header with the value `Bearer <YOUR_AUTH_TOKEN>` in your requests.
+
+## 3. API Endpoints
+
+### 3.1. Authentication & User Management
+
+
+
+#### `POST /api/v1/auth/register`
+*   **Description:** Registers a new user.
+*   **Authentication:** None
+*   **Request Body:**
+    ```json
+    {
+        "userName": "string",
+        "email": "string",
+        "password": "string",
+        "phoneNumber": "string"
+    }
+    ```
+*   **Response (Success - 201 Created):**
+    ```json
+    {
+        "success": true,
+        "message": "User registered successfully",
+        "user": {
+            "_id": "string",
+            "userName": "string",
+            "email": "string",
+            "phoneNumber": "string",
+            "createdAt": "datetime",
+            "updatedAt": "datetime"
+        },
+        "token": "string"
+    }
+    ```
+
+#### `POST /api/v1/auth/login`
+*   **Description:** Logs in a user and returns an authentication token.
+*   **Authentication:** None
+*   **Request Body:**
+    ```json
+    {
+        "email": "string",
+        "password": "string"
+    }
+    ```
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "Logged in successfully",
+        "user": {
+            "_id": "string",
+            "userName": "string",
+            "email": "string",
+            "createdAt": "datetime",
+            "updatedAt": "datetime"
+        },
+        "token": "string"
+    }
+    ```
+
+#### `GET /api/v1/auth/google`
+*   **Description:** Initiates Google OAuth login process. Redirects to Google's authentication page.
+*   **Authentication:** None
+
+#### `GET /api/v1/auth/google/callback`
+*   **Description:** Callback URL for Google OAuth. Handles the Google login response.
+*   **Authentication:** None
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "user login successfully",
+        "user": {
+            "_id": "string",
+            "userName": "string",
+            "email": "string"
+        },
+        "token": "string"
+    }
+    ```
+
+#### `PATCH /api/v1/auth/updatePassword`
+*   **Description:** Updates the authenticated user's password.
+*   **Authentication:** Required (Bearer Token)
+*   **Request Body:**
+    ```json
+    {
+        "oldPassword": "string",
+        "newPassword": "string",
+        "confirmNewPassword": "string"
+    }
+    ```
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "data": {
+            // ... user object
+        }
+    }
+    ```
+
+#### `GET /api/v1/auth/me`
+*   **Description:** Retrieves the profile of the authenticated user.
+*   **Authentication:** Required (Bearer Token)
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "user": {
+            // ... user object
+        }
+    }
+    ```
+
+#### `GET /api/v1/auth/logout`
+*   **Description:** Logs out the authenticated user. Invalidates the current session/token.
+*   **Authentication:** Required (Bearer Token)
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "logout successfully !"
+    }
+    ```
+
+#### `POST /api/v1/auth/forget`
+*   **Description:** Initiates the password reset process by sending a reset link to the user's email.
+*   **Authentication:** None
+*   **Request Body:**
+    ```json
+    {
+        "email": "string"
+    }
+    ```
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "email sent to [email] successfully"
+    }
+    ```
+
+#### `GET /api/v1/auth/profile`
+*   **Description:** Retrieves specific profile information of the authenticated user.
+*   **Authentication:** Required (Bearer Token)
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "userdata": {
+            "_id": "string",
+            "userName": "string",
+            "email": "string",
+            "phoneNumber": "string",
+            "address": "string"
+        }
+    }
+    ```
+
+#### `PUT /api/v1/auth/update`
+*   **Description:** Updates the profile information of the authenticated user.
+*   **Authentication:** Required (Bearer To
+ken)
+*   **Request Body:**
+    ```json
+    {
+        "userName": "string",
+        "email": "string",
+        "address": "string",
+        "phoneNumber": "string"
+    }
+    ```
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "userdata": {
+            // ... updated user fields
+        }
+    }
+    ```
+
+#### `PUT /api/v1/auth/reset/:token`
+*   **Description:** Resets the user's password using a reset token.
+*   **Authentication:** None
+*   **URL Parameters:**
+    *   `token`: The password reset token received via email.
+*   **Request Body:**
+    ```json
+    {
+        "newPassword": "string",
+        "confirmNewPassword": "string"
+    }
+    ```
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "password changed successfully !"
+    }
+    ```
+
+#### `GET /api/v1/auth/user-states`
+*   **Description:** Retrieves user-related statistics.
+*   **Authentication:** Required (Bearer Token)
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "states": {
+            "totalOrder": "number",
+            "totalfav": "number"
+        }
+    }
+    ```
+
+### 3.2. Products
+
+#### `GET /api/v1/product/get`
+*   **Description:** Retrieves a list of all products.
+*   **Authentication:** None
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "results": "number",
+        "data": [
+            // ... array of product objects
+        ]
+    }
+    ```
+
+#### `GET /api/v1/product/get/:categoryId`
+*   **Description:** Retrieves products by category ID.
+*   **Authentication:** None
+*   **URL Parameters:**
+    *   `categoryId`: The ID of the category.
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "data": [
+            // ... array of product objects
+        ]
+    }
+    ```
+
+#### `POST /api/v1/product/add`
+*   **Description:** Adds a new product.
+*   **Authentication:** Required (Bearer Token, Shop Verified)
+*   **Request Body:**
+    ```json
+    {
+        "name": "string",
+        "price": "number",
+        "category": "string",
+        "itemTag": "string",
+        "shippingTag": "string",
+        "discount": "number",
+        "quantity": "number"
+    }
+    ```
+*   **Response (Success - 201 Created):**
+    ```json
+    {
+        "success": true,
+        "message": "product added successfully ! ",
+        "data": {
+            // ... product object
+        }
+    }
+    ```
+
+#### `PUT /api/v1/product/update/:id`
+*   **Description:** Updates a product.
+*   **Authentication:** Required (Bearer Token, Admin role)
+*   **URL Parameters:**
+    *   `id`: The ID of the product to update.
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "product updated successfully !",
+        "data": {
+            // ... product object
+        }
+    }
+    ```
+
+#### `PATCH /api/v1/product/updateOne/:id`
+*   **Description:** Updates a product.
+*   **Authentication:** Required (Bearer Token, Admin role)
+*   **URL Parameters:**
+    *   `id`: The ID of the product to update.
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "product updated successfully !",
+        "data": {
+            // ... product object
+        }
+    }
+    ```
+
+#### `DELETE /api/v1/product/delete/:id`
+*   **Description:** Deletes a product.
+*   **Authentication:** Required (Bearer Token, Admin role)
+*   **URL Parameters:**
+    *   `id`: The ID of the product to delete.
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "product deleted successfully !"
+    }
+    ```
+
+#### `GET /api/v1/product/filter`
+*   **Description:** Filters products based on query parameters.
+*   **Authentication:** Required (Bearer Token)
+*   **Query Parameters:** `name`, `shopName`, `category`, `price`, `min`, `max`, `itemTag`, `shippingTag`, `sort`
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "results": "number",
+        "products": [
+            // ... array of product objects
+        ]
+    }
+    ```
+
+### 3.3. Categories
+
+#### `GET /api/v1/category/`
+*   **Description:** Retrieves a list of all product categories.
+*   **Authentication:** Required (Bearer Token, Admin role)
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "mainCategory": [],
+        "giftCategory": [],
+        "homeCategory": [],
+        "fashionCategory": []
+    }
+    ```
+
+#### `POST /api/v1/category/add`
+*   **Description:** Adds a new category.
+*   **Authentication:** Required (Bearer Token, Admin role)
+*   **Request Body:**
+    ```json
+    {
+        "name": "string",
+        "type": "string"
+    }
+    ```
+*   **Response (Success - 201 Created):**
+    ```json
+    {
+        "success": true,
+        "message": "category added successfully !",
+        "category": {
+            // ... category object
+        }
+    }
+    ```
+
+#### `DELETE /api/v1/category/:id`
+*   **Description:** Deletes a category.
+*   **Authentication:** Required (Bearer Token, Admin role)
+*   **URL Parameters:**
+    *   `id`: The ID of the category to delete.
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "category deleted successfully!"
+    }
+    ```
+
+### 3.4. Cart
+
+#### `POST /api/v1/cart/add`
+*   **Description:** Adds a product to the user's cart.
+*   **Authentication:** Required (Bearer Token)
+*   **Request Body:**
+    ```json
+    {
+        "productId": "string",
+        "quantity": "number"
+    }
+    ```
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "item added to cart",
+        "cart": {
+            // ... cart object
+        }
+    }
+    ```
+
+#### `GET /api/v1/cart/get`
+*   **Description:** Retrieves the items in the user's cart.
+*   **Authentication:** Required (Bearer Token)
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "cart": {
+            // ... cart object
+        },
+        "orignalprice": "number",
+        "totalAmount": "number",
+        "discount": "number",
+        "usedwalletamount": "number",
+        "couponDiscount": "number"
+    }
+    ```
+
+#### `POST /api/v1/cart/clear`
+*   **Description:** Clears the user's cart.
+*   **Authentication:** Required (Bearer Token)
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "cart is cleared !"
+    }
+    ```
+
+#### `PATCH /api/v1/cart/remove`
+*   **Description:** Removes a product from the user's cart.
+*   **Authentication:** Required (Bearer Token)
+*   **Request Body:**
+    ```json
+    {
+        "productId": "string"
+    }
+    ```
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "item removed successfully !"
+    }
+    ```
+
+#### `POST /api/v1/cart/update`
+*   **Description:** Updates the quantity of a product in the user's cart.
+*   **Authentication:** Required (Bearer Token)
+*   **Request Body:**
+    ```json
+    {
+        "productId": "string",
+        "quantity": "number"
+    }
+    ```
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "cart": {
+            // ... cart object
+        }
+    }
+    ```
+
+### 3.5. Wishlist
+
+#### `POST /api/v1/wishlist/add`
+*   **Description:** Adds a product to the user's wishlist.
+*   **Authentication:** Required (Bearer Token)
+*   **Request Body:**
+    ```json
+    {
+        "productId": "string"
+    }
+    ```
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "item added to wishlist",
+        "data": {
+            // ... wishlist object
+        }
+    }
+    ```
+
+#### `GET /api/v1/wishlist/get`
+*   **Description:** Retrieves the items in the user's wishlist.
+*   **Authentication:** Required (Bearer Token)
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "data": {
+            // ... wishlist object
+        }
+    }
+    ```
+
+#### `DELETE /api/v1/wishlist/remove/:productId`
+*   **Description:** Removes a product from the user's wishlist.
+*   **Authentication:** Required (Bearer Token)
+*   **URL Parameters:**
+    *   `productId`: The ID of the product to remove.
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "item removed from wishlist"
+    }
+    ```
+
+### 3.6. Orders
+
+#### `POST /api/v1/order/create`
+*   **Description:** Creates a new order from the user's cart.
+*   **Authentication:** Required (Bearer Token)
+*   **Request Body:**
+    ```json
+    {
+        "shippingAddress": "string"
+    }
+    ```
+*   **Response (Success - 201 Created):**
+    ```json
+    {
+        "success": true,
+        "message": "order confirmed !",
+        "data": {
+            // ... order object
+        },
+        "scratch_card": {
+            // ... scratch card object
+        }
+    }
+    ```
+
+#### `GET /api/v1/order/my-order`
+*   **Description:** Retrieves a list of the user's orders.
+*   **Authentication:** Required (Bearer Token)
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "results": "number",
+        "data": [
+            // ... array of order objects
+        ]
+    }
+    ```
+
+#### `GET /api/v1/order/all-order`
+*   **Description:** Retrieves a list of all orders.
+*   **Authentication:** Required (Bearer Token, Admin role)
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "results": "number",
+        "data": [
+            // ... array of order objects
+        ]
+    }
+    ```
+
+#### `GET /api/v1/order/recent-order`
+*   **Description:** Retrieves a list of recent orders for the authenticated user.
+*   **Authentication:** Required (Bearer Token)
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "results": "number",
+        "data": [
+            // ... array of order objects
+        ]
+    }
+    ```
+
+#### `PUT /api/v1/order/cancel/:orderId`
+*   **Description:** Cancels an order.
+*   **Authentication:** Required (Bearer Token)
+*   **URL Parameters:**
+    *   `orderId`: The ID of the order to cancel.
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "order cancelled successfully !",
+        "data": {
+            // ... order object
+        }
+    }
+    ```
+
+#### `PATCH /api/v1/order/update/:orderId`
+*   **Description:** Updates an order.
+*   **Authentication:** Required (Bearer Token, Admin role)
+*   **URL Parameters:**
+    *   `orderId`: The ID of the order to update.
+*   **Request Body:**
+    ```json
+    {
+        "shippingAddress": "string",
+        "shippingStatus": "string"
+    }
+    ```
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "order updated successfully !",
+        "data": {
+            // ... order object
+        }
+    }
+    ```
+
+### 3.7. Reviews
+
+#### `POST /api/v1/review/create`
+*   **Description:** Creates a new review for a product.
+*   **Authentication:** Required (Bearer Token)
+*   **Request Body:**
+    ```json
+    {
+        "productId": "string",
+        "rating": "number",
+        "comment": "string"
+    }
+    ```
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "review added successfully!",
+        "data": {
+            // ... review object
+        }
+    }
+    ```
+
+#### `GET /api/v1/review/Allreviews`
+*   **Description:** Retrieves all reviews.
+*   **Authentication:** Required (Bearer Token)
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "data": [
+            // ... array of review objects
+        ]
+    }
+    ```
+
+#### `GET /api/v1/review/getreviews/:id`
+*   **Description:** Retrieves reviews for a product.
+*   **Authentication:** Required (Bearer Token)
+*   **URL Parameters:**
+    *   `id`: The ID of the product.
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "results": "number",
+        "data": {
+            // ... review object
+        }
+    }
+    ```
+
+#### `PATCH /api/v1/review/update/:id`
+*   **Description:** Updates a review.
+*   **Authentication:** Required (Bearer Token)
+*   **URL Parameters:**
+    *   `id`: The ID of the product.
+*   **Request Body:**
+    ```json
+    {
+        "comment": "string",
+        "rating": "number"
+    }
+    ```
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "review updated !",
+        "data": {
+            // ... review object
+        }
+    }
+    ```
+
+#### `DELETE /api/v1/review/delete/:id`
+*   **Description:** Deletes a review.
+*   **Authentication:** None
+*   **URL Parameters:**
+    *   `id`: The ID of the product.
+*   **Request Body:**
+    ```json
+    {
+        "userId": "string"
+    }
+    ```
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "review deleted !"
+    }
+    ```
+
+### 3.8. Shop
+
+#### `POST /api/v1/shop/create`
+*   **Description:** Creates a new shop.
+*   **Authentication:** Required (Bearer Token)
+*   **Request Body:**
+    ```json
+    {
+        "shopName": "string",
+        "location": "string",
+        "contactNumber": "string"
+    }
+    ```
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "shop created succssfully !",
+        "data": {
+            // ... shop object
+        }
+    }
+    ```
+
+#### `GET /api/v1/shop/myshop`
+*   **Description:** Retrieves the shop of the authenticated user.
+*   **Authentication:** Required (Bearer Token, Shop Verified)
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "data": {
+            // ... shop object
+        }
+    }
+    ```
+
+#### `GET /api/v1/shop/myshopProduct`
+*   **Description:** Retrieves the products of the authenticated user's shop.
+*   **Authentication:** Required (Bearer Token, Shop Verified)
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "productData": [
+            // ... array of product objects
+        ]
+    }
+    ```
+
+#### `GET /api/v1/shop/allshop`
+*   **Description:** Retrieves all shops.
+*   **Authentication:** None
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "data": [
+            // ... array of shop objects
+        ]
+    }
+    ```
+
+#### `GET /api/v1/shop/Oneshop/:id`
+*   **Description:** Retrieves a single shop by its ID.
+*   **Authentication:** Required (Bearer Token)
+*   **URL Parameters:**
+    *   `id`: The ID of the shop.
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "data": {
+            // ... shop object
+        }
+    }
+    ```
+
+#### `GET /api/v1/shop/getShopProduct/:id`
+*   **Description:** Retrieves the products of a shop.
+*   **Authentication:** None
+*   **URL Parameters:**
+    *   `id`: The ID of the shop.
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "productData": [
+            // ... array of product objects
+        ]
+    }
+    ```
+
+#### `PATCH /api/v1/shop/updateShop/:id`
+*   **Description:** Updates a shop's details.
+*   **Authentication:** None
+*   **URL Parameters:**
+    *   `id`: The ID of the shop to update.
+*   **Request Body:**
+    ```json
+    {
+        "shopName": "string",
+        "contactNumber": "string",
+        "location": "string",
+        "isShopVerified": "boolean"
+    }
+    ```
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "shop details updated !",
+        "data": {
+            // ... shop object
+        }
+    }
+    ```
+
+#### `PATCH /api/v1/shop/disable/:id`
+*   **Description:** Disables a shop.
+*   **Authentication:** None
+*   **URL Parameters:**
+    *   `id`: The ID of the shop to disable.
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "shop is disabled"
+    }
+    ```
+
+### 3.9. Admin
+
+#### `GET /api/v1/admin/user`
+*   **Description:** Retrieves a list of all users.
+*   **Authentication:** Required (Bearer Token, Admin role)
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "data": [
+            // ... array of user objects
+        ]
+    }
+    ```
+
+#### `PATCH /api/v1/admin/ban/:id`
+*   **Description:** Bans or unbans a user.
+*   **Authentication:** Required (Bearer Token, Admin role)
+*   **URL Parameters:**
+    *   `id`: The ID of the user to ban/unban.
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "user banned/unbanned successfully !",
+        "data": {
+            // ... user object
+        }
+    }
+    ```
+
+#### `DELETE /api/v1/admin/delete/:id`
+*   **Description:** Deletes a user.
+*   **Authentication:** Required (Bearer Token, Admin role)
+*   **URL Parameters:**
+    *   `id`: The ID of the user to delete.
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "user deleted successfully !",
+        "data": {
+            // ... user object
+        }
+    }
+    ```
+
+#### `PATCH /api/v1/admin/role/:id`
+*   **Description:** Changes the role of a user.
+*   **Authentication:** Required (Bearer Token, Admin role)
+*   **URL Parameters:**
+    *   `id`: The ID of the user to update.
+*   **Request Body:**
+    ```json
+    {
+        "role": "string"
+    }
+    ```
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "user update role is [role] !",
+        "data": {
+            // ... user object
+        }
+    }
+    ```
+
+### 3.10. Chatbot
+
+#### `POST /api/v1/chatbot/ask`
+*   **Description:** Asks a question to the Gemini chatbot (streaming response).
+*   **Authentication:** Required (Bearer Token)
+*   **Request Body:**
+    ```json
+    {
+        "question": "string"
+    }
+    ```
+
+#### `POST /api/v1/chatbot/ask2`
+*   **Description:** Asks a question to the Gemini chatbot (non-streaming response).
+*   **Authentication:** Required (Bearer Token)
+*   **Request Body:**
+    ```json
+    {
+        "question": "string"
+    }
+    ```
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "response": "string"
+    }
+    ```
+
+#### `PATCH /api/v1/chatbot/close`
+*   **Description:** Closes the active chat conversation.
+*   **Authentication:** Required (Bearer Token)
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "chat is closed !"
+    }
+    ```
+
+#### `GET /api/v1/chatbot/history`
+*   **Description:** Retrieves the chat history of the authenticated user.
+*   **Authentication:** Required (Bearer Token)
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "total_conversation": "number",
+        "convertsation": [
+            // ... array of conversation objects
+        ]
+    }
+    ```
+
+#### `GET /api/v1/chatbot/history/:id`
+*   **Description:** Retrieves the chat history of a user by their ID.
+*   **Authentication:** None
+*   **URL Parameters:**
+    *   `id`: The ID of the user.
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "total_conversation": "number",
+        "convertsation": [
+            // ... array of conversation objects
+        ]
+    }
+    ```
+
+### 3.11. Coupon
+
+#### `GET /api/v1/coupon/get`
+*   **Description:** Retrieves a list of all coupons.
+*   **Authentication:** None
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "results": "number",
+        "data": [
+            // ... array of coupon objects
+        ]
+    }
+    ```
+
+#### `POST /api/v1/coupon/create`
+*   **Description:** Creates a new coupon.
+*   **Authentication:** Required (Bearer Token)
+*   **Request Body:**
+    ```json
+    {
+        "couponTitle": "string",
+        "couponCode": "string",
+        "couponExpiry": "date",
+        "couponDiscount": "number",
+        "useLimit": "number"
+    }
+    ```
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "data": {
+            // ... coupon object
+        }
+    }
+    ```
+
+#### `PATCH /api/v1/coupon/edit/:id`
+*   **Description:** Edits a coupon.
+*   **Authentication:** None
+*   **URL Parameters:**
+    *   `id`: The ID of the coupon to edit.
+*   **Request Body:**
+    ```json
+    {
+        "couponTitle": "string",
+        "couponCode": "string",
+        "couponExpiry": "date",
+        "couponDiscount": "number"
+    }
+    ```
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "coupon upadated successfully !",
+        "data": {
+            // ... coupon object
+        }
+    }
+    ```
+
+#### `DELETE /api/v1/coupon/delete/:id`
+*   **Description:** Deletes a coupon.
+*   **Authentication:** Required (Bearer Token)
+*   **URL Parameters:**
+    *   `id`: The ID of the coupon to delete.
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "coupon deleted successfully !"
+    }
+    ```
+
+#### `POST /api/v1/coupon/applyCoupon`
+*   **Description:** Applies a coupon to the user's cart.
+*   **Authentication:** Required (Bearer Token)
+*   **Request Body:**
+    ```json
+    {
+        "couponCode": "string"
+    }
+    ```
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "coupon applied successfully !"
+    }
+    ```
+
+#### `POST /api/v1/coupon/removeCoupon`
+*   **Description:** Removes a coupon from the user's cart.
+*   **Authentication:** Required (Bearer Token)
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "coupon removed successfully !"
+    }
+    ```
+
+### 3.12. Department
+
+#### `GET /api/v1/department/`
+*   **Description:** Retrieves a list of all departments.
+*   **Authentication:** None
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "data": [
+            // ... array of department objects
+        ]
+    }
+    ```
+
+#### `POST /api/v1/department/add`
+*   **Description:** Adds a new department.
+*   **Authentication:** None
+*   **Request Body:**
+    ```json
+    {
+        "departmentName": "string"
+    }
+    ```
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "data": {
+            // ... department object
+        }
+    }
+    ```
+
+#### `PATCH /api/v1/department/update/:id`
+*   **Description:** Updates a department.
+*   **Authentication:** None
+*   **URL Parameters:**
+    *   `id`: The ID of the department to update.
+*   **Request Body:**
+    ```json
+    {
+        "departmentName": "string"
+    }
+    ```
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "data": {
+            // ... department object
+        }
+    }
+    ```
+
+#### `DELETE /api/v1/department/delete/:id`
+*   **Description:** Deletes a department.
+*   **Authentication:** None
+*   **URL Parameters:**
+    *   `id`: The ID of the department to delete.
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "department deleted successfully !"
+    }
+    ```
+
+### 3.13. Email
+
+#### `POST /api/v1/email/sendAll`
+*   **Description:** Sends an email to all users.
+*   **Authentication:** Required (Bearer Token, Admin role)
+*   **Request Body:**
+    ```json
+    {
+        "subject": "string",
+        "message": "string"
+    }
+    ```
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "emaillist": [
+            // ... array of email addresses
+        ],
+        "message": "email sent successfully !"
+    }
+    ```
+
+#### `POST /api/v1/email/send/:id`
+*   **Description:** Sends an email to a specific user.
+*   **Authentication:** Required (Bearer Token)
+*   **URL Parameters:**
+    *   `id`: The ID of the user to send an email to.
+*   **Request Body:**
+    ```json
+    {
+        "subject": "string",
+        "message": "string"
+    }
+    ```
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "email send successfully !"
+    }
+    ```
+
+### 3.14. Employee
+
+#### `POST /api/v1/employee/add`
+*   **Description:** Adds a new employee.
+*   **Authentication:** Required (Bearer Token, Admin role)
+*   **Request Body:**
+    ```json
+    {
+        "userName": "string",
+        "email": "string",
+        "password": "string",
+        "role": "string",
+        "phoneNumber": "string",
+        "address": "string",
+        "dateOfBirth": "date",
+        "gender": "string",
+        "maritalStatus": "string",
+        "employeeId": "string",
+        "nationality": "string",
+        "emergencyContactName": "string",
+        "emergencyContactNumber": "string",
+        "department": "string",
+        "designation": "string",
+        "dateOfJoined": "date",
+        "contractType": "string",
+        "salary": "number",
+        "bankAccount": "string",
+        "taxId": "string"
+    }
+    ```
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "employee added Successfully !",
+        "newEmployee": {
+            // ... employee object
+        }
+    }
+    ```
+
+#### `GET /api/v1/employee/get`
+*   **Description:** Retrieves a list of all employees.
+*   **Authentication:** Required (Bearer Token, Admin role)
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "results": "number",
+        "data": [
+            // ... array of employee objects
+        ]
+    }
+    ```
+
+#### `GET /api/v1/employee/getone/:id`
+*   **Description:** Retrieves a single employee by their ID.
+*   **Authentication:** Required (Bearer Token, Admin role)
+*   **URL Parameters:**
+    *   `id`: The ID of the employee.
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "data": {
+            // ... employee object
+        }
+    }
+    ```
+
+#### `PATCH /api/v1/employee/update/:id`
+*   **Description:** Updates an employee's information.
+*   **Authentication:** Required (Bearer Token, Admin role)
+*   **URL Parameters:**
+    *   `id`: The ID of the employee to update.
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "employee updated Successfully !",
+        "newEmployee": {
+            // ... employee object
+        }
+    }
+    ```
+
+#### `PATCH /api/v1/employee/disable/:id`
+*   **Description:** Disables or enables an employee.
+*   **Authentication:** Required (Bearer Token, Admin role)
+*   **URL Parameters:**
+    *   `id`: The ID of the employee to disable/enable.
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "employee id disabled/enabled"
+    }
+    ```
+
+#### `POST /api/v1/employee/addSalary`
+*   **Description:** Adds a salary for an employee.
+*   **Authentication:** Required (Bearer Token, Admin role)
+*   **Request Body:**
+    ```json
+    {
+        "user_Id": "string",
+        "employeeId": "string",
+        "employeeName": "string",
+        "amount": "number",
+        "allowances": "number",
+        "deductions": "number"
+    }
+    ```
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "salary has been added !"
+    }
+    ```
+
+#### `GET /api/v1/employee/getSalary/:id`
+*   **Description:** Retrieves the salary history for an employee.
+*   **Authentication:** Required (Bearer Token, Admin role)
+*   **URL Parameters:**
+    *   `id`: The employee ID.
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "results": "number",
+        "salaryHistory": [
+            // ... array of salary objects
+        ]
+    }
+    ```
+
+#### `GET /api/v1/employee/getSalary`
+*   **Description:** Retrieves the salary history for the authenticated employee.
+*   **Authentication:** Required (Bearer Token, Employee role)
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "results": "number",
+        "salaryHistory": [
+            // ... array of salary objects
+        ]
+    }
+    ```
+
+#### `POST /api/v1/employee/leave`
+*   **Description:** Applies for a leave.
+*   **Authentication:** Required (Bearer Token, Employee/Admin role)
+*   **Request Body:**
+    ```json
+    {
+        "leaveType": "string",
+        "from": "date",
+        "to": "date",
+        "description": "string"
+    }
+    ```
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "data": {
+            // ... leave object
+        }
+    }
+    ```
+
+#### `GET /api/v1/employee/checkleave`
+*   **Description:** Checks the leave status for the authenticated employee.
+*   **Authentication:** Required (Bearer Token, Employee/Admin role)
+*   **Query Parameters:** `status`
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "results": "number",
+        "data": [
+            // ... array of leave objects
+        ]
+    }
+    ```
+
+#### `GET /api/v1/employee/checkleaves`
+*   **Description:** Checks all leaves.
+*   **Authentication:** Required (Bearer Token, Admin role)
+*   **Query Parameters:** `status`
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "results": "number",
+        "data": [
+            // ... array of leave objects
+        ]
+    }
+    ```
+
+#### `PATCH /api/v1/employee/approveleaves`
+*   **Description:** Approves or rejects a leave.
+*   **Authentication:** Required (Bearer Token, Admin role)
+*   **Request Body:**
+    ```json
+    {
+        "leaveId": "string",
+        "status": "string"
+    }
+    ```
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "data": {
+            // ... leave object
+        }
+    }
+    ```
+
+#### `GET /api/v1/employee/dashboard/overview`
+*   **Description:** Retrieves an overview of the employee dashboard.
+*   **Authentication:** Required (Bearer Token, Admin role)
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "total_employee": "number",
+        "total_department": "number",
+        "total_salary": "number",
+        "total_leave": "number",
+        "pending_leave": "number",
+        "approved_leave": "number",
+        "rejected_leave": "number"
+    }
+    ```
+
+### 3.15. Event
+
+#### `POST /api/v1/event/create`
+*   **Description:** Creates a new event.
+*   **Authentication:** None
+*   **Request Body:**
+    ```json
+    {
+        "eventName": "string",
+        "eventType": "string",
+        "description": "string",
+        "startDate": "date",
+        "endDate": "date",
+        "discount": "number",
+        "maxDiscountAmount": "number",
+        "minPurchaseAmount": "number",
+        "categories": ["string"],
+        "bannerUrl": "string",
+        "priority": "number"
+    }
+    ```
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "event [eventName] created !",
+        "data": {
+            // ... event object
+        }
+    }
+    ```
+
+#### `GET /api/v1/event/getEvents`
+*   **Description:** Retrieves a list of all events.
+*   **Authentication:** None
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "results": "number",
+        "data": [
+            // ... array of event objects
+        ]
+    }
+    ```
+
+#### `PATCH /api/v1/event/update/:id`
+*   **Description:** Updates an event.
+*   **Authentication:** None
+*   **URL Parameters:**
+    *   `id`: The ID of the event to update.
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "event [eventName] updated !",
+        "data": {
+            // ... event object
+        }
+    }
+    ```
+
+#### `POST /api/v1/event/stopall`
+*   **Description:** Stops all active events.
+*   **Authentication:** None
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "all event are stopped !"
+    }
+    ```
+
+#### `POST /api/v1/event/stop/:id`
+*   **Description:** Stops a specific event.
+*   **Authentication:** None
+*   **URL Parameters:**
+    *   `id`: The ID of the event to stop.
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "event [eventName] is deactive  !"
+    }
+    ```
+
+#### `POST /api/v1/event/active/:id`
+*   **Description:** Activates a specific event.
+*   **Authentication:** None
+*   **URL Parameters:**
+    *   `id`: The ID of the event to activate.
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "event is active [eventName] !"
+    }
+    ```
+
+### 3.16. Invoice
+
+#### `POST /api/v1/invoice/create`
+*   **Description:** Creates a new invoice for an order.
+*   **Authentication:** Required (Bearer Token)
+*   **Request Body:**
+    ```json
+    {
+        "orderId": "string"
+    }
+    ```
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "invoice created successfully !",
+        "invoiceData": {
+            // ... invoice object
+        }
+    }
+    ```
+
+#### `POST /api/v1/invoice/get`
+*   **Description:** Retrieves an invoice for an order.
+*   **Authentication:** None
+*   **Request Body:**
+    ```json
+    {
+        "orderId": "string"
+    }
+    ```
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "data": {
+            // ... invoice object
+        }
+    }
+    ```
+
+#### `GET /api/v1/invoice/download/:id`
+*   **Description:** Downloads an invoice as a PDF.
+*   **Authentication:** None
+*   **URL Parameters:**
+    *   `id`: The order ID of the invoice to download.
+
+### 3.17. Notification
+
+#### `GET /api/v1/notification/get`
+*   **Description:** Retrieves all notifications for the authenticated user.
+*   **Authentication:** Required (Bearer Token)
+*   **Query Parameters:** `page`, `limit`
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "count": "number",
+        "data": [
+            // ... array of notification objects
+        ]
+    }
+    ```
+
+#### `POST /api/v1/notification/create`
+*   **Description:** Sends a notification to all users.
+*   **Authentication:** Required (Bearer Token, Admin role)
+*   **Request Body:**
+    ```json
+    {
+        "title": "string",
+        "message": "string",
+        "link": "string",
+        "type": "string"
+    }
+    ```
+*   **Response (Success - 201 Created):**
+    ```json
+    {
+        "success": true,
+        "message": "notification sended to all users"
+    }
+    ```
+
+#### `DELETE /api/v1/notification/delete/:id`
+*   **Description:** Deletes a notification.
+*   **Authentication:** Required (Bearer Token)
+*   **URL Parameters:**
+    *   `id`: The ID of the notification to delete.
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "notification deleted successfully !"
+    }
+    ```
+
+#### `DELETE /api/v1/notification/clear`
+*   **Description:** Clears all notifications for the authenticated user.
+*   **Authentication:** Required (Bearer Token)
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "all notification are cleared successfully !"
+    }
+    ```
+
+### 3.18. QNA
+
+#### `GET /api/v1/qna/get`
+*   **Description:** Retrieves all Q&A items.
+*   **Authentication:** None
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "data": [
+            // ... array of Q&A objects
+        ]
+    }
+    ```
+
+#### `GET /api/v1/qna/get/:id`
+*   **Description:** Retrieves a single Q&A item by its ID.
+*   **Authentication:** None
+*   **URL Parameters:**
+    *   `id`: The ID of the Q&A item.
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "data": {
+            // ... Q&A object
+        }
+    }
+    ```
+
+#### `POST /api/v1/qna/create`
+*   **Description:** Creates a new Q&A item.
+*   **Authentication:** None
+*   **Request Body:**
+    ```json
+    {
+        "question": "string",
+        "answer": "string"
+    }
+    ```
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "qna created !",
+        "data": {
+            // ... Q&A object
+        }
+    }
+    ```
+
+#### `PUT /api/v1/qna/update/:id`
+*   **Description:** Updates a Q&A item.
+*   **Authentication:** None
+*   **URL Parameters:**
+    *   `id`: The ID of the Q&A item to update.
+*   **Request Body:**
+    ```json
+    {
+        "question": "string",
+        "answer": "string"
+    }
+    ```
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "data": {
+            // ... Q&A object
+        }
+    }
+    ```
+
+#### `DELETE /api/v1/qna/delete/:id`
+*   **Description:** Deletes a Q&A item.
+*   **Authentication:** None
+*   **URL Parameters:**
+    *   `id`: The ID of the Q&A item to delete.
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "qna deleted succesfully !"
+    }
+    ```
+
+### 3.19. Refer & Earn
+
+#### `GET /api/v1/refer/myrefer`
+*   **Description:** Retrieves the referral data for the authenticated user.
+*   **Authentication:** Required (Bearer Token)
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "myreferalData": {
+            // ... referral data object
+        }
+    }
+    ```
+
+#### `GET /api/v1/refer/allrefer`
+*   **Description:** Retrieves all referral data.
+*   **Authentication:** Required (Bearer Token)
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "referalData": [
+            // ... array of referral data objects
+        ]
+    }
+    ```
+
+#### `GET /api/v1/refer/userrefer/:id`
+*   **Description:** Retrieves the referral data for a specific user.
+*   **Authentication:** Required (Bearer Token)
+*   **URL Parameters:**
+    *   `id`: The ID of the user.
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "userreferalData": {
+            // ... referral data object
+        }
+    }
+    ```
+
+#### `GET /api/v1/refer/referDashboard`
+*   **Description:** Retrieves the referral dashboard data.
+*   **Authentication:** Required (Bearer Token)
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "userreferalData": {
+            // ... referral dashboard data object
+        }
+    }
+    ```
+
+### 3.20. Reward
+
+#### `GET /api/v1/reward/`
+*   **Description:** Base reward route.
+*   **Authentication:** None
+
+#### `GET /api/v1/reward/random`
+*   **Description:** Retrieves a random reward.
+*   **Authentication:** None
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        // ... reward object
+    }
+    ```
+
+#### `GET /api/v1/reward/rewardlist`
+*   **Description:** Retrieves a list of all rewards.
+*   **Authentication:** None
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "data": [
+            // ... array of reward objects
+        ]
+    }
+    ```
+
+#### `POST /api/v1/reward/create`
+*   **Description:** Creates a new reward.
+*   **Authentication:** None
+*   **Request Body:**
+    ```json
+    {
+        "type": "string",
+        "value": "number",
+        "probability": "number",
+        "isActive": "boolean",
+        "expiresAt": "date"
+    }
+    ```
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "data": {
+            // ... reward object
+        }
+    }
+    ```
+
+#### `PATCH /api/v1/reward/edit/:id`
+*   **Description:** Edits a reward.
+*   **Authentication:** None
+*   **URL Parameters:**
+    *   `id`: The ID of the reward to edit.
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "data": {
+            // ... reward object
+        }
+    }
+    ```
+
+#### `DELETE /api/v1/reward/delete/:id`
+*   **Description:** Deletes a reward.
+*   **Authentication:** None
+*   **URL Parameters:**
+    *   `id`: The ID of the reward to delete.
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "reward deleted successfully !"
+    }
+    ```
+
+### 3.21. Scratch Card
+
+#### `GET /api/v1/scratch/myscratch`
+*   **Description:** Retrieves all scratch cards for the authenticated user.
+*   **Authentication:** Required (Bearer Token)
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "results": "number",
+        "data": [
+            // ... array of scratch card objects
+        ]
+    }
+    ```
+
+#### `POST /api/v1/scratch/scratch/:id`
+*   **Description:** Scratches a scratch card.
+*   **Authentication:** Required (Bearer Token)
+*   **URL Parameters:**
+    *   `id`: The ID of the scratch card to scratch.
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "data": {
+            // ... scratch card object
+        }
+    }
+    ```
+
+### 3.22. Transaction
+
+#### `GET /api/v1/transaction/checkBalance`
+*   **Description:** Retrieves the wallet balance for the authenticated user.
+*   **Authentication:** Required (Bearer Token)
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "balance": "number"
+    }
+    ```
+
+#### `POST /api/v1/transaction/addMoney`
+*   **Description:** Adds money to the user's wallet.
+*   **Authentication:** Required (Bearer Token)
+*   **Request Body:**
+    ```json
+    {
+        "amount": "number",
+        "description": "string"
+    }
+    ```
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "balance": "number",
+        "transation": {
+            // ... transaction object
+        }
+    }
+    ```
+
+#### `POST /api/v1/transaction/applyWallet`
+*   **Description:** Applies the wallet balance to the user's cart.
+*   **Authentication:** Required (Bearer Token)
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "wallet applied successfully !"
+    }
+    ```
+
+#### `POST /api/v1/transaction/unapplyWallet`
+*   **Description:** Unapplies the wallet balance from the user's cart.
+*   **Authentication:** Required (Bearer Token)
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "message": "wallet unapplied successfully !"
+    }
+    ```
+
+### 3.23. WhatsApp
+
+#### `POST /api/v1/whatsapp/message`
+*   **Description:** Generates a WhatsApp chat link for a user.
+*   **Authentication:** None
+*   **Request Body:**
+    ```json
+    {
+        "userId": "string"
+    }
+    ```
+*   **Response (Success - 200 OK):**
+    ```json
+    {
+        "success": true,
+        "walink": "string"
+    }
+    ```
+
+## 4. Error Handling
+All error responses will follow a consistent JSON structure:
+```json
+{
+    "success": false,
+    "message": "A descriptive error message"
+}
+```
