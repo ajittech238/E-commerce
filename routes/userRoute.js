@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { forgetPassword, getStates, getUser, googleLogin, googleurl, resetPassword, updatePassword, updateProfile, userLogin, userLogout, userProfile, userRegister } from "../controller/authController.js";
+import { forgetPassword, getAllUsers, getStates, getUser, googleLogin, googleurl, resetPassword, updatePassword, updateProfile, userLogin, userLogout, userProfile, userRegister } from "../controller/authController.js";
 import { isAuthenticated } from "../middleware/authMiddleware.js";
 import { checkPermission } from "../middleware/permissionMiddleware.js";
 import { validateUser, validateLogin, handleValidationErrors, checkEmptyBody } from "../middleware/validationMiddleware.js";
@@ -16,6 +16,7 @@ router.get("/google", googleurl)
 router.patch("/updatePassword", isAuthenticated, checkEmptyBody, handleValidationErrors, updatePassword)
 router.get("/google/callback", googleLogin)
 router.get("/me", isAuthenticated, getUser)
+router.get("/users",isAuthenticated, getAllUsers);
 router.get("/logout", userLogout)
 router.post("/forget", checkEmptyBody, handleValidationErrors, forgetPassword)
 router.get("/profile", isAuthenticated, userProfile)

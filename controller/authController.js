@@ -208,6 +208,24 @@ export const getUser = async (req, res, next) => {
 
     }
 }
+// get all user
+
+export const getAllUsers = async (req, res, next) => {
+  try {
+    const users = await user.find()
+      .select("userName email phoneNumber role createdAt");
+
+    res.status(200).json({
+      success: true,
+      totalUsers: users.length,
+      users
+    });
+  } catch (err) {
+    return next(new ErrorHandler("Failed to fetch users", 500));
+  }
+};
+
+
 
 export const userLogout = (req, res, next) => {
     try {

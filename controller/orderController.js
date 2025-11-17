@@ -20,7 +20,7 @@ export const createOrder = async(req, res, next)=>{
     const usercart = await Cart.findOne({userId})
     const {shippingAddress, paymentMethod} = req.body 
 
-        return next(new ErrorHandler("cart is empty !", 200))
+     return next(new ErrorHandler("cart is empty !", 200))
 
 
 

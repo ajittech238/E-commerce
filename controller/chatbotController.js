@@ -2,7 +2,8 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { ErrorHandler } from '../utils/Errorhandler.js';
 import { chatAI } from '../model/chatbotModel.js';
 
-
+import dotenv from "dotenv";
+dotenv.config();
 
 
 const getAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
@@ -13,9 +14,10 @@ export const askGemini = async (req, res, next) => {
 
         const userId = req.user._id;
 
-        return next(new ErrorHandler("please provide a question", 400))
-
-        const model = getAI.getGenerativeModel({ model: "gemini-1.5-flash" })
+if (!question || question.trim() === "") {
+            return next(new ErrorHandler("Please provide a question", 400));
+        }
+        const model = getAI.getGenerativeModel({ model: "gemini-2.0-flash" })
 
         let convertsation = await chatAI.findOne({ userId: userId, status: "active" })
 
@@ -79,7 +81,10 @@ export const closechat = async (req, res, next) => {
 
         const userId = req.user._id
         let convertsation = await chatAI.findOne({ userId: userId, status: 'active' })
-        return next(new ErrorHandler("no active conversation found", 404))
+
+        if (!convertsation) {
+            return next(new ErrorHandler("No active conversation found", 404));
+        }
 
         convertsation.status = "closed"
 
@@ -146,7 +151,7 @@ export const ask2Gemini = async (req, res, next) => {
 
         if (!question) return next(new ErrorHandler("please provide a question", 400))
 
-        const model = getAI.getGenerativeModel({ model: "gemini-1.5-flash" })
+        const model = getAI.getGenerativeModel({ model: "gemini-2.0-flash" })
 
         let convertsation = await chatAI.findOne({ userId: userId, status: "active" })
 
