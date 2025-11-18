@@ -24,6 +24,10 @@ const notificationSchema = new mongoose.Schema({
         default : "order"
     },
 
+     isRead: {
+        type: Boolean,
+        default: false          
+    }
 }, {timestamps : true})
 
 export const notification = mongoose.model("notification", notificationSchema)

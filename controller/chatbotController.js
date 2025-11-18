@@ -1,7 +1,7 @@
+import mongoose from 'mongoose';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { ErrorHandler } from '../utils/Errorhandler.js';
 import { chatAI } from '../model/chatbotModel.js';
-
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -126,21 +126,25 @@ export const gethistory = async (req, res, next) => {
 export const gethistorybyId = async (req, res, next) => {
     try {
 
-        const userId = req.params.id
+        const userId = req.params.id;
 
-        let convertsation = await chatAI.find({ userId: userId })
+        // Convert string to ObjectId
+        const objectId = new mongoose.Types.ObjectId(userId);
+
+        let conversation = await chatAI.find({ userId: objectId });
 
         res.status(200).json({
             success: true,
-            total_conversation: convertsation.length,
-            convertsation
-        })
+            total_conversation: conversation.length,
+            conversation
+        });
 
     } catch (err) {
-        console.error(err)
-        return next(new ErrorHandler(err.message, 500))
+        console.error(err);
+        return next(new ErrorHandler(err.message, 500));
     }
-}
+};
+
 
 
 export const ask2Gemini = async (req, res, next) => {

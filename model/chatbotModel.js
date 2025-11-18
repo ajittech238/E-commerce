@@ -6,6 +6,8 @@ const chatbot_AI_Schema = new mongoose.Schema({
         ref: "user",
         required: true
     },
+      question: String,
+  answer: String,
     history: [
         {
             role: {

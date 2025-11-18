@@ -20,7 +20,9 @@ export const createOrder = async(req, res, next)=>{
     const usercart = await Cart.findOne({userId})
     const {shippingAddress, paymentMethod} = req.body 
 
-     return next(new ErrorHandler("cart is empty !", 200))
+ if (!usercart || usercart.items.length === 0) {
+            return next(new ErrorHandler("Cart is empty!", 400));
+        }
 
 
 
@@ -35,6 +37,7 @@ export const createOrder = async(req, res, next)=>{
     const userData = await user.findOne({_id : userId})
     const eventData = await event.findOne({iseventActive : true})
 
+    // apply wallet
     if(userData.isWalletApplied){
         walletamount = userData.walletBalance
     }
@@ -43,7 +46,10 @@ export const createOrder = async(req, res, next)=>{
     // console.log(item.productId)
     let product = await productDetails.findById(item.productId)
         console.log(item.productId)
-        return next(new ErrorHandler("product not found", 200))
+        if(!product){
+            return next(new ErrorHandler("product not found", 200))
+
+        }
 
     // console.log(product)
     
@@ -118,8 +124,9 @@ export const getMyorder = async(req, res, next)=>{
         const userId = req.user._id;
         const data = await order.find({user : userId}).populate('orderItems.product', 'name price currentDiscount').select('orderItems OrignalAmount productPrice finalAmount shippingAddress usedWalletAmount shippingStatus paymentStatus')
 
-            return next(new ErrorHandler("oder not found !", 404))
-        
+           if (!data || data.length === 0) {
+            return next(new ErrorHandler("No orders found!", 404));
+        }
         res.status(200).json({
             success : true,
             results : data.length,
@@ -136,8 +143,9 @@ export const getAllorder = async(req, res, next)=>{
     try{
         const data = await order.find({}).populate("orderItems.product", 'name shopName price').populate("user")
 
-        return next(new ErrorHandler("no order is placed !", 404))
-
+ if (!data || data.length === 0) {
+            return next(new ErrorHandler("No order placed yet!", 404));
+        }   
     res.status(200).json({
         success : true,
         results : data.length,
@@ -156,17 +164,19 @@ export const cancelOrder = async(req, res, next)=>{
     try{
         const userId = req.user._id;
     const {orderId} = req.params;
-  
-        return next(new ErrorHandler("invalid order id !", 400))
+        if(!orderId || !mongoose.Types.ObjectId.isValid(orderId)){
+
+       return next(new ErrorHandler("invalid order id !", 400))
+
+        }
     
     const shippingStatus = "cancelled";
 
-   
-
     const data = await order.findOne({_id : orderId ,user : userId})
 
-        return next(new ErrorHandler("order not found", 404))
-
+     if (!data) {
+            return next(new ErrorHandler("Order not found!", 404));
+        }
 
     data.shippingStatus = shippingStatus;
 
@@ -193,13 +203,20 @@ export const updateOrder = async(req, res, next)=>{
     const {orderId} = req.params;
     const {shippingAddress, shippingStatus} = req.body || {};
 
-        return next(new ErrorHandler("invalid order id !", 400))
+  if(!orderId || !mongoose.Types.ObjectId.isValid(orderId)){
 
-        return next(new ErrorHandler("at least one field is required !", 400))
+       return next(new ErrorHandler("invalid order id !", 400))
+
+        }
     
+   if (!shippingAddress && !shippingStatus) {
+            return next(new ErrorHandler("At least one field required", 400));
+        }    
     const data = await order.findOne({_id : orderId })
 
-        return next(new ErrorHandler("order not found", 404))
+if (!data) {
+            return next(new ErrorHandler("Order not found!", 404));
+        }
 
     if(shippingAddress) data.shippingAddress = shippingAddress;
     if(shippingStatus) data.shippingStatus = shippingStatus;
@@ -225,8 +242,10 @@ export const recentOrder = async (req, res, next)=>{
 
     const data = await order.find({user: userId}).sort({createdAt : -1}).populate('orderItems.product', 'name price shopName')
 
-        return next(new ErrorHandler("no recent order found !", 404))
 
+        if (!data || data.length === 0) {
+            return next(new ErrorHandler("No recent orders found!", 404));
+        }
     res.status(200).json({
         success : true,
         results : data.length,

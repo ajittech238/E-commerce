@@ -213,7 +213,7 @@ export const validateReview = [
 export const validateNotification = [
   body('title').notEmpty().withMessage('Notification title is required'),
   body('message').notEmpty().withMessage('Notification message is required'),
-  body('type').notEmpty().withMessage('Notification type is required').isIn(['info', 'warning', 'success', 'error']).withMessage('Type must be: info, warning, success, or error')
+  body('type').notEmpty().withMessage('Notification type is required').isIn( ["order", "promo", "wishlist", "admin"]).withMessage('Type must be: orders, wishlist, promo,or error')
 ];
 
 export const validateCart = [

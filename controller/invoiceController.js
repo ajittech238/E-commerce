@@ -23,10 +23,15 @@ export const createInvoice = async (req, res, next)=>{
 
         const { orderId } = req.body || {}
 
-            return next(new ErrorHandler("req.body is required !",400))
+         
+        if (!orderId) {
+            return next(new ErrorHandler("orderId is required!", 400));
+        }
 
         const orderData = await order.findOne({_id : orderId}).populate("orderItems.product", 'name price discount').select('orderItems OrignalAmount productPrice finalAmount shippingAddress shippingStatus paymentStatus')
-            return next(new ErrorHandler("order id is invalid !", 400))
+ if (!orderData) {
+            return next(new ErrorHandler("Invalid Order ID!", 404));
+        }
         const invoiceItem = []
 
         const AlreadyInvoice = await invoice.findOne({orderId})
@@ -79,12 +84,14 @@ export const getInvoice = async(req, res, next)=>{
     try {
         const { orderId } = req.body || {}
 
-            return next(new ErrorHandler("req.body is required !", 400))
-
+ if (!orderId) {
+            return next(new ErrorHandler("orderId is required!", 400));
+        }
         const data = await invoice.findOne({orderId})
 
-            return next(new ErrorHandler("invaid orderId or invoice not available", 404))
-
+if (!data) {
+            return next(new ErrorHandler("Invoice not found!", 404));
+        }
         res.status(200).json({
             success  : true,
             data
@@ -100,10 +107,16 @@ export const getInvoice = async(req, res, next)=>{
 export const downloadInvoice = async(req, res, next)=>{
     try {
        const orderId = req.params.id 
-        return next(new ErrorHandler("req.params required", 400))
+        if (!orderId) {
+            return next(new ErrorHandler("Invoice ID required!", 400));
+        }
 
        const data = await invoice.findOne({orderId}).populate('userId', 'userName phoneNumber')
        console.log(data)
+
+         if (!data) {
+            return next(new ErrorHandler("Invoice not found!", 404));
+        }
         let doc = new PDFDocument({margin : 25})
         res.setHeader('Content-Disposition', 'attachment; filename=invoice.pdf')
         res.setHeader('content-Type', 'application/pdf')

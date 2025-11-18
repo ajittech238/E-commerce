@@ -4,74 +4,81 @@ import { sendEmail, sendEmails } from "../utils/emailSend.js"
 import { ErrorHandler } from "../utils/Errorhandler.js"
 
 
-export const sendEmailToAllUsers = async(req, res, next)=>{
-    try{
-
-    
-    const userId = req.user._id
-    const {subject , message} = req.body
+export const sendEmailToAllUsers = async (req, res, next) => {
+    try {
 
 
-    const data = await user.find({}, "email")
-
-        return next(new ErrorHandler("no email founds !", 400))
-
-    const emaillist = data.map((item)=>item.email)
+        const userId = req.user._id
+        const { subject, message } = req.body
 
 
-    await emailDetails.create({
-        sentBy : userId,
-        emailList : emaillist,
-        subject,
-        message
-    })
+        if (!subject || !message) {
+            return next(new ErrorHandler("subject and message are required!", 400));
+        }
+        const data = await user.find({}, "email")
 
-    await sendEmails({bcc : emaillist, subject, message})
+        if (!data || data.length === 0) {
+            return next(new ErrorHandler("No users found!", 404));
+        }
+        const emaillist = data.map((item) => item.email)
 
-    res.status(200).send({
-        success : true,
-        emaillist,
-        message : "email sent successfully !"
-    })
+
+        await emailDetails.create({
+            sentBy: userId,
+            emailList: emaillist,
+            subject,
+            message
+        })
+
+        await sendEmails({ bcc: emaillist, subject, message })
+
+        res.status(200).send({
+            success: true,
+            emaillist,
+            message: "email sent successfully !"
+        })
+    }
+    catch (err) {
+        console.error(err)
+        return next(new ErrorHandler("failed to send emails !", 500))
+    }
+
 }
-catch(err){
-    console.error(err)
-    return next(new ErrorHandler("failed to send emails !", 500))
-}
 
-}
+export const sendEmailTouser = async (req, res, next) => {
+    try {
 
-export const sendEmailTouser = async(req, res, next)=>{
-    try{
+        const userId = req.params.id
+        const { subject, message } = req.body || {}
 
-    const userId = req.params.id
-    const {subject , message} = req.body || {}
+        if (!subject || !message) {
+            return next(new ErrorHandler("subject and message are required!", 400));
+        }
 
+        const data = await user.findById(userId)
 
+        if (!data || data.length === 0) {
+            return next(new ErrorHandler("No users found!", 404));
+        }
+        const email = data.email
 
-    const data = await user.findById(userId)
+        await emailDetails.create({
+            sentBy: userId,
+            email,
+            subject,
+            message
+        })
 
-        return next(new ErrorHandler("no email founds !", 400))
+        await sendEmail({ email, subject, message })
 
-    const email = data.email
-
-    await emailDetails.create({
-        sentBy : userId,
-        email,
-        subject,
-        message
-    })
-
-    await sendEmail({email, subject, message})
-
-    res.status(200).send({
-        success : true,
-        message : "email send successfully !"
-    })
-}
-catch(err){
-    console.error(err)
-    return next(new ErrorHandler("failed to send emails !", 500))
-}
+        res.status(200).send({
+            success: true,
+            message: "email send successfully !"
+        })
+    }
+    catch (err) {
+        console.error(err)
+        return next(new ErrorHandler("failed to send emails !", 500))
+    }
 
 }
