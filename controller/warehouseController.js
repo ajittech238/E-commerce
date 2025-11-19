@@ -26,7 +26,8 @@ export const createWarehouse = async (req, res, next)=>{
         const warehouseData = await warehouse.create({
             name : name,
             location : location,
-            warehouseNo : warehouseNo,
+                   warehouseNo : warehouseNo,
+
             manager : managerId
         })
 

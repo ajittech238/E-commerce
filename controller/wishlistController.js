@@ -8,9 +8,10 @@ export const addToWishlist = async(req, res, next)=>{
         const {productId} = req.body
     const userId = req.user._id
 
-        return next(new ErrorHandler("please enter valid product id", 400))
 
-        return next(new ErrorHandler("product id is invalid", 400))
+        if (!productId || !mongoose.Types.ObjectId.isValid(productId)) {
+            return next(new ErrorHandler("Please enter valid product ID", 400));
+        }
 
     let data = await wishlist.findOne({userId})
 
@@ -49,12 +50,16 @@ export const removeToWishlist = async(req, res, next)=>{
         const userId = req.user._id
         const {productId} = req.body
 
-            return next(new ErrorHandler("product id invalid", 400))
+
+        if (!productId || !mongoose.Types.ObjectId.isValid(productId)) {
+            return next(new ErrorHandler("Invalid product ID", 400));
+        }
 
         const data = await wishlist.findOne({userId})
 
-            return next(new ErrorHandler("wishlist not found", 404))
-
+ if (!data) {
+            return next(new ErrorHandler("Wishlist not found", 404));
+        }
         data.items = data.items.filter(item => !item.productId.equals(productId))
 
 
@@ -77,11 +82,12 @@ export const getWishlist = async(req, res, next)=>{
     
     const data = await wishlist.findOne({userId}).populate("items.productId")
 
-      return res.status(200).send({
-        success : true,
-        wishlist : []
-      })
-
+      if (!data) {
+            return res.status(200).json({
+                success: true,
+                wishlist: []
+            });
+        }
     res.status(200).send({
         success : true,
         wishlist : data
@@ -106,8 +112,9 @@ export const recentFav = async (req, res, next)=>{
     }
 } )
 
-        return next(new ErrorHandler("no recent fav found !", 404))
-
+ if (!data || data.items.length === 0) {
+            return next(new ErrorHandler("No recent favorites found!", 404));
+        }
     data.items.sort((a, b)=>{
         return new Date(b.productId.createdAt) - new Date(a.productId.createdAt)
     })
