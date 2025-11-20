@@ -1,3 +1,4 @@
+import mongoose from "mongoose"
 import { department } from "../model/departmentModel.js"
 import { leave } from "../model/leaveModel.js"
 import { salary } from "../model/salaryModel.js"
@@ -13,6 +14,11 @@ export const applyingLeave = async(req, res, next)=>{
             to,
             description } = req.body
 
+              if (!leaveType || !from || !to) {
+      return next(new ErrorHandler("leaveType, from and to are required", 400));
+    }
+
+
         const data = await new leave({
             user : userId,
             leaveType,
@@ -25,6 +31,7 @@ export const applyingLeave = async(req, res, next)=>{
 
         res.status(200).json({
             success : true,
+            message: "Leave applied successfully",
             data
         })
               
@@ -47,8 +54,11 @@ export const checkLeave = async(req, res, next)=>{
         }
         
         const data = await leave.find(filter)
-
+        if(!data){
             return next(new ErrorHandler("no leaves found !", 200))
+
+
+        }
 
         res.status(200).json({
             success : true,
@@ -75,8 +85,10 @@ export const checkLeaves = async(req, res, next)=>{
         }
       
         const data = await leave.find(filter)
+        if(!data){
+                        return next(new ErrorHandler("no leaves found !", 200))
 
-            return next(new ErrorHandler("no leaves found !", 200))
+        }
 
         res.status(200).json({
             success : true,
@@ -96,15 +108,23 @@ export const approveLeaves = async(req, res, next)=>{
     try {
         
         const {leaveId, status} = req.body
-
+          if (!leaveId || !status) {
+      return next(new ErrorHandler("leaveId and status are required", 400));
+    }
+    
+    if (!mongoose.Types.ObjectId.isValid(leaveId)) {
+      return next(new ErrorHandler("Invalid leaveId", 400));
+    }
         const AllowedStatus = ["pending", "approved", "rejected"]
 
-            return next(new ErrorHandler("this status is not allowed !", 400))
-
+ if (!AllowedStatus.includes(status)) {
+      return next(new ErrorHandler(`Status must be one of: ${allowedStatus.join(", ")}`, 400));
+    }
         const data = await leave.findOne({_id : leaveId})
 
-            return next(new ErrorHandler("invalid userid !", 200))
-
+ if (!data) {
+      return next(new ErrorHandler("Leave not found", 404));
+    }
         data.status = status
         data.save()
         res.status(200).json({
@@ -123,11 +143,14 @@ export const dashboardOverview = async(req, res, next)=>{
     try {
         const total_employee = await user.find({role : "employee"})
 
-            return next(new ErrorHandler("no employee found ", 400))
-
+    if (total_employee === 0) {
+      return next(new ErrorHandler("No employees found", 404));
+    }
         const total_department = await department.find({})
 
-            return next(new ErrorHandler("no employee found ", 400))
+  if (total_department === 0) {
+      return next(new ErrorHandler("No departments found", 404));
+    }
 
         const total_salary = await salary.aggregate([{
             $group : {

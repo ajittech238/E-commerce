@@ -78,7 +78,8 @@ const userSchema = new mongoose.Schema({
         type: String
     },
     department: {
-        type: mongoose.Schema.Types.ObjectId
+        type: mongoose.Schema.Types.ObjectId,
+         ref:'department'
     },
     designation: {
         type: String

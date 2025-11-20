@@ -1,5 +1,5 @@
 import { Router  } from "express";
-import { addProductToWarehouse, addToWarehouseCart, clearWarehouseCart, createInvoiceforWarehouse, createrazorpayOrder, createWarehouse, createWarehouseOrder, deleteProductToWarehouse, editWarehouse, getAllWarehouse, getInvoiceOfWarehouse, getOneWarehouse, getProductOfWarehouse, getToWarehouseCart, getWarehouseOrder, removeFromWarehouseCart, updateProductToWarehouse, updateToWarehouseCart, updateWarehouseOrder, verifyPaymentOfWarehouse } from "../controller/warehouseController.js";
+import { addProductToWarehouse, addToWarehouseCart, clearWarehouseCart, completeReturnProcess, createInvoiceforWarehouse, createrazorpayOrder, createWarehouse, createWarehouseOrder, deleteProductToWarehouse, editWarehouse, getAllReturnRefundRequests, getAllWarehouse, getInvoiceOfWarehouse, getOneWarehouse, getProductOfWarehouse, getToWarehouseCart, getWarehouseOrder, processRefund, removeFromWarehouseCart, requestReturn, updateProductToWarehouse, updateReturnStatus, updateToWarehouseCart, updateWarehouseOrder, verifyPaymentOfWarehouse } from "../controller/warehouseController.js";
 import { isAuthenticated } from "../middleware/authMiddleware.js";
 import { checkPermission } from "../middleware/permissionMiddleware.js";
 import { handleValidationErrors, checkEmptyBody } from "../middleware/validationMiddleware.js";
@@ -35,5 +35,18 @@ router.post("/order/verifyPayment", isAuthenticated, checkPermission('warehouse'
 // Warehouse Invoices
 router.post("/:warehouseOrderId/invoice", isAuthenticated, checkPermission('warehouse', 'create'), checkEmptyBody, handleValidationErrors, createInvoiceforWarehouse)
 router.get("/:warehouseOrderId/invoice", isAuthenticated, checkPermission('warehouse', 'read'), getInvoiceOfWarehouse)
+
+
+// warehouse Return and Refund
+
+router.post("/request", isAuthenticated, checkPermission("returns", "create"), requestReturn);
+
+// Admin
+router.patch("/update-status", isAuthenticated, checkPermission("returns", "update"), updateReturnStatus);
+router.patch("/complete-return", isAuthenticated, checkPermission("returns", "update"), completeReturnProcess);
+router.patch("/refund", isAuthenticated, checkPermission("returns", "update"), processRefund);
+
+// Admin + Seller
+router.get("/all", isAuthenticated, checkPermission("returns", "read"), getAllReturnRefundRequests);
 
 export { router as warehouseRouter };

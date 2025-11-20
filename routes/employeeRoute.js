@@ -8,14 +8,21 @@ import { applyingLeave, approveLeaves, checkLeave, checkLeaves, dashboardOvervie
 
 const router = Router()
 
+// Employee route
+
 router.post("/add", isAuthenticated, checkPermission('employees', 'create'), checkEmptyBody, validateEmployee, handleValidationErrors, addEmployee)
 router.get("/get", isAuthenticated, checkPermission('employees', 'list'), getEmployee)
 router.get("/getone/:id", isAuthenticated, checkPermission('employees', 'read'), getOneEmployee)
 router.patch("/update/:id", isAuthenticated, checkPermission('employees', 'update'), checkEmptyBody, handleValidationErrors, updateEmployee)
 router.patch("/disable/:id", isAuthenticated, checkPermission('employees', 'update'), disableEmployee)
+
+
+//  salary route
 router.post("/addSalary", isAuthenticated, checkPermission('employees', 'update'), checkEmptyBody, handleValidationErrors, addSalary)
 router.get("/getSalary/:id", isAuthenticated, checkPermission('employees', 'read'), salaryHistory)
 router.get("/getSalary", isAuthenticated, mySalaryHistory)
+
+// leave  route
 router.post("/leave", isAuthenticated, checkEmptyBody, handleValidationErrors, applyingLeave)
 router.get("/checkleave", isAuthenticated, checkLeave)
 router.get("/checkleaves", isAuthenticated, checkPermission('employees', 'list'), checkLeaves)

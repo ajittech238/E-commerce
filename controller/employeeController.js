@@ -1,3 +1,4 @@
+import mongoose from "mongoose"
 import { user } from "../model/userModel.js"
 import { ErrorHandler } from "../utils/Errorhandler.js"
 import bcrypt from 'bcrypt'
@@ -57,9 +58,14 @@ export const updateEmployee = async(req, res, next)=>{
     }
 
     let data = await user.findOne({_id : eId})
+    if (!data) {
+      return next(new ErrorHandler("Employee not found", 404));
+    }
 
-        return next(new ErrorHandler("invaild employeeId", 400))
-    
+
+  if (!mongoose.Types.ObjectId.isValid(eId)) {
+      return next(new ErrorHandler("Invalid employee id", 400));
+    }    
     if(userName){
         data.userName = userName 
     }
@@ -140,7 +146,9 @@ if(taxId){
 export const getEmployee = async(req, res, next)=>{
     try {
         const data = await user.find({role : "employee"})
-            return next(new ErrorHandler("no employee found !", 200))
+if (!data) {
+      return next(new ErrorHandler("Employee not found", 404));
+    }
 
         res.status(200).json({
             success : true,
@@ -157,6 +165,9 @@ export const getEmployee = async(req, res, next)=>{
 export const getOneEmployee = async(req, res, next)=>{
     try {
         const eId = req.params.id
+        if (!mongoose.Types.ObjectId.isValid(eId)) {
+      return next(new ErrorHandler("Invalid employee id", 400));
+    }
         const data = await user.findOne({
            
                 _id : eId
@@ -164,8 +175,9 @@ export const getOneEmployee = async(req, res, next)=>{
             }
             )
             // console.log(data)
-            return next(new ErrorHandler("employee id is invaild !", 400))
-
+ if (!data) {
+      return next(new ErrorHandler("Employee not found", 404));
+    }
         res.status(200).json({
             success : true,
             data
@@ -277,10 +289,15 @@ export const addEmployee = async(req, res, next)=>{
 export const disableEmployee = async(req, res, next)=>{
     try {
         const eId = req.params.id;
+          if (!mongoose.Types.ObjectId.isValid(eId)) {
+      return next(new ErrorHandler("Invalid employee id", 400));
+    }
 
         const data = await user.findOne({_id : eId})
 
-            return next(new ErrorHandler("invaild employeeId !", 400))
+if (!data) {
+      return next(new ErrorHandler("Employee not found", 404));
+    }
 
         data.isdisable = !data.isdisable
         await data.save()
