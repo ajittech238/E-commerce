@@ -267,48 +267,49 @@ export const deleteProductToWarehouse = async (req, res, next) => {
 
 export const addToWarehouseCart = async (req, res, next) => {
     try {
+        const sellerId = req.user._id;
+        const { warehouseProductId, quantity } = req.body;
 
-        const sellerId = req.user._id
+        if (!warehouseProductId)
+            return next(new ErrorHandler("warehouseProductId required", 400));
 
-        const { warehouseProductId, quantity } = req.body
+        if (!mongoose.Types.ObjectId.isValid(warehouseProductId))
+            return next(new ErrorHandler("Invalid warehouseProductId", 400));
 
-        if (!warehouseProductId) return next(new ErrorHandler("warehouseProductId required", 400));
+        const isValidWarehouseProduct = await warehouseProduct.findById(warehouseProductId);
 
-        if (!mongoose.Types.ObjectId.isValid(warehouseProductId)) return next(new ErrorHandler("Invalid warehouseProductId", 400));
+        if (!isValidWarehouseProduct) {
+            return next(new ErrorHandler("warehouseProductId is not a valid warehouse product", 400));
+        }
 
-        let cartData = await warehouseCart.findOne({ sellerId: sellerId });
-        if (!cartData) {
-            cartData = await warehouseCart.create({
+        let cart = await warehouseCart.findOne({ sellerId });
+
+        if (!cart) {
+            cart = await warehouseCart.create({
                 sellerId,
-                items: [{ warehouseProductId, quantity }],
+                items: [{ warehouseProductId, quantity }]
             });
-            return res.status(201).json({ success: true, message: "Product added to cart", cartData });
-        }
-        const exitingItem = cartData.items.find((item) => item.warehouseProductId.equals(warehouseProductId))
+        } else {
+            const item = cart.items.find(i => i.warehouseProductId.equals(warehouseProductId));
 
-        if (exitingItem) {
-            exitingItem.quantity = quantity
-        }
-        else {
-            cartData.items.push({
-                warehouseProductId,
-                quantity
-            })
-        }
+            if (item) item.quantity = quantity;
+            else cart.items.push({ warehouseProductId, quantity });
 
-        await cartData.save()
+            await cart.save();
+        }
 
         res.status(200).json({
             success: true,
-            message: "product added to cart !",
-            cartData
-        })
+            message: "Product added to cart",
+            cart
+        });
 
     } catch (err) {
-        console.error(err)
-        return next(new ErrorHandler(err.message, 500))
+        return next(new ErrorHandler(err.message, 500));
     }
-}
+};
+
+
 
 
 
@@ -331,104 +332,116 @@ export const getToWarehouseCart = async (req, res, next) => {
     }
 }
 
-
 export const updateToWarehouseCart = async (req, res, next) => {
     try {
+        const sellerId = req.user._id;
+        const { warehouseProductId } = req.body;
 
-        const sellerId = req.user._id
+        if (!warehouseProductId)
+            return next(new ErrorHandler("warehouseProductId required", 400));
 
-        const { warehouseProductId } = req.body
+        const product = await warehouseProduct.findById(warehouseProductId);
+        if (!product)
+            return next(new ErrorHandler("Invalid warehouseProductId", 400));
 
-        if (!warehouseProductId) return next(new ErrorHandler("warehouseProductId required", 400));
-        let cartData = await warehouseCart.findOne({ sellerId: sellerId })
+        let cart = await warehouseCart.findOne({ sellerId });
 
-        cartData = await warehouseCart.create({
-            sellerId,
-            items: [{
-                warehouseProductId,
-                quantity: 1
-            }]
-        })
+        if (!cart) {
+            cart = await warehouseCart.create({
+                sellerId,
+                items: [{ warehouseProductId, quantity: 1 }]
+            });
 
-        const exitingItem = cartData.items.find((item) => item.warehouseProductId.equals(warehouseProductId))
-
-        if (exitingItem) {
-            exitingItem.quantity += 1
-        }
-        else {
-            cartData.items.push({
-                warehouseProductId,
-                quantity: 1
-            })
+            return res.status(200).json({
+                success: true,
+                message: "Product added to new cart!",
+                cart
+            });
         }
 
-        await cartData.save()
+        const existingItem = cart.items.find(item =>
+            item.warehouseProductId.equals(warehouseProductId)
+        );
+
+        if (existingItem) {
+            existingItem.quantity += 1;
+        } else {
+            // Add new product
+            cart.items.push({
+                warehouseProductId,
+                quantity: 1
+            });
+        }
+
+        await cart.save();
 
         res.status(200).json({
             success: true,
-            message: "product updated to cart !",
-            cartData
-        })
+            message: existingItem
+                ? "Product quantity updated!"
+                : "Product added to cart!",
+            cart
+        });
 
     } catch (err) {
-        console.error(err)
-        return next(new ErrorHandler(err.message, 500))
+        console.error(err);
+        return next(new ErrorHandler(err.message, 500));
     }
-}
+};
 
 
 
 export const removeFromWarehouseCart = async (req, res, next) => {
     try {
+        const sellerId = req.user._id;
+        const { warehouseProductId } = req.body;
 
-        const sellerId = req.user._id
+        if (!warehouseProductId)
+            return next(new ErrorHandler("warehouseProductId required", 400));
 
-        const { warehouseProductId } = req.body
+        let cart = await warehouseCart.findOne({ sellerId });
+        if (!cart) return next(new ErrorHandler("Cart not found", 404));
 
-        if (!warehouseProductId) return next(new ErrorHandler("warehouseProductId required", 400));
-        let cartData = await warehouseCart.findOne({ sellerId: sellerId })
+        cart.items = cart.items.filter(
+            (item) => item.warehouseProductId.toString() !== warehouseProductId
+        );
 
-        if (!cartData) return next(new ErrorHandler("Cart not found", 404));
-
-        cartData.items = cartData.items.filter((item) => !item.warehouseProductId.equals(warehouseProductId))
-
-        await cartData.save()
+        await cart.save();
 
         res.status(200).json({
             success: true,
-            message: "produc remove from cart !",
-            cartData
-        })
+            message: "Product removed from cart!",
+            cart
+        });
 
     } catch (err) {
-        console.error(err)
-        return next(new ErrorHandler(err.message, 500))
+        console.error(err);
+        return next(new ErrorHandler(err.message, 500));
     }
-}
+};
 
 
 
 
 export const clearWarehouseCart = async (req, res, next) => {
     try {
+        const sellerId = req.user._id;
 
-        const sellerId = req.user._id
+        const deleted = await warehouseCart.deleteMany({ sellerId });
 
-        let cartData = await warehouseCart.findOneAndDelete({ sellerId: sellerId })
-
-        if (!cartData) return next(new ErrorHandler("Cart not found", 404));
+        if (deleted.deletedCount === 0)
+            return next(new ErrorHandler("Cart not found", 404));
 
         res.status(200).json({
             success: true,
-            message: " cart cleared successfully !",
-        })
+            message: "Cart cleared successfully!"
+        });
 
     } catch (err) {
-        console.error(err)
-        return next(new ErrorHandler(err.message, 500))
+        console.error(err);
+        return next(new ErrorHandler(err.message, 500));
     }
-}
-
+};
 
 //warehouse order Controller
 
@@ -467,13 +480,12 @@ export const createWarehouseOrder = async (req, res, next) => {
         }
 
         const warehouseCartData = await warehouseCart.findOne({ sellerId: sellerId }).populate({
-            path: 'items.warehouseProduct',
+            path: 'items.warehouseProductId',
             populate: {
                 path: "productId",
                 model: "productDetails"
             }
         })
-
         if (!warehouseCartData || !warehouseCartData.items.length) {
             return next(new ErrorHandler("Cart is empty", 400));
         }
@@ -639,6 +651,7 @@ export const verifyPaymentOfWarehouse = async (req, res, next) => {
             .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
             .update(body.toString())
             .digest("hex");
+            console.log(expectedSignature)
 
         const isAuthentic = expectedSignature === razorpay_signature;
 
@@ -778,175 +791,175 @@ export const getInvoiceOfWarehouse = async (req, res, next) => {
 
 //  Create New Return Request
 export const requestReturn = async (req, res, next) => {
-  try {
-    const sellerId = req.user._id;
-    const { warehouseOrderId, returnReason } = req.body;
+    try {
+        const sellerId = req.user._id;
+        const { warehouseOrderId, returnReason } = req.body;
 
-    if (!warehouseOrderId || !returnReason) {
-      return next(new ErrorHandler("Order ID & return reason required", 400));
+        if (!warehouseOrderId || !returnReason) {
+            return next(new ErrorHandler("Order ID & return reason required", 400));
+        }
+
+        const order = await warehouseOrder.findById(warehouseOrderId);
+        if (!order) return next(new ErrorHandler("Invalid warehouse order!", 404));
+
+        const data = await warehouseReturnandRefund.create({
+            sellerId,
+            warehouseOrderId,
+            returnReason,
+        });
+
+        res.status(200).json({
+            success: true,
+            message: "Return request submitted!",
+            data,
+        });
+    } catch (err) {
+        console.error(err);
+        return next(new ErrorHandler("Failed to submit return request", 500));
     }
-
-    const order = await warehouseOrders.findById(warehouseOrderId);
-    if (!order) return next(new ErrorHandler("Invalid warehouse order!", 404));
-
-    const data = await warehouseReturnandRefund.create({
-      sellerId,
-      warehouseOrderId,
-      returnReason,
-    });
-
-    res.status(200).json({
-      success: true,
-      message: "Return request submitted!",
-      data,
-    });
-  } catch (err) {
-    console.error(err);
-    return next(new ErrorHandler("Failed to submit return request", 500));
-  }
 };
 
 
 //  Admin Approves / Rejects Return Request
 export const updateReturnStatus = async (req, res, next) => {
-  try {
-    const { requestId, status, rejectReason } = req.body;
+    try {
+        const { requestId, status, rejectReason } = req.body;
 
-    if (!requestId || !status) {
-      return next(new ErrorHandler("Request ID & Status required!", 400));
+        if (!requestId || !status) {
+            return next(new ErrorHandler("Request ID & Status required!", 400));
+        }
+
+        const allowStatus = ["pending", "approved", "rejected"];
+        if (!allowStatus.includes(status)) {
+            return next(new ErrorHandler("Invalid return status!", 400));
+        }
+
+        const requestData = await warehouseReturnandRefund.findById(requestId);
+        if (!requestData) return next(new ErrorHandler("Request not found!", 404));
+
+        requestData.status = status;
+
+        if (status === "rejected" && rejectReason) {
+            requestData.rejectReason = rejectReason;
+            requestData.returnStatus = "closed";
+        }
+
+        if (status === "approved") {
+            requestData.returnStatus = "progress";
+        }
+
+        await requestData.save();
+
+        res.status(200).json({
+            success: true,
+            message: "Return status updated!",
+            data: requestData,
+        });
+
+    } catch (err) {
+        console.error(err);
+        return next(new ErrorHandler("Failed to update return status", 500));
     }
-
-    const allowStatus = ["pending", "approved", "rejected"];
-    if (!allowStatus.includes(status)) {
-      return next(new ErrorHandler("Invalid return status!", 400));
-    }
-
-    const requestData = await warehouseReturnandRefund.findById(requestId);
-    if (!requestData) return next(new ErrorHandler("Request not found!", 404));
-
-    requestData.status = status;
-
-    if (status === "rejected" && rejectReason) {
-      requestData.rejectReason = rejectReason;
-      requestData.returnStatus = "closed";
-    }
-
-    if (status === "approved") {
-      requestData.returnStatus = "progress";
-    }
-
-    await requestData.save();
-
-    res.status(200).json({
-      success: true,
-      message: "Return status updated!",
-      data: requestData,
-    });
-
-  } catch (err) {
-    console.error(err);
-    return next(new ErrorHandler("Failed to update return status", 500));
-  }
 };
 
 
 //  Mark Return Completed (Admin)
 export const completeReturnProcess = async (req, res, next) => {
-  try {
-    const { requestId, returnDetails } = req.body;
+    try {
+        const { requestId, returnDetails } = req.body;
 
-    if (!requestId) return next(new ErrorHandler("Request ID is required!", 400));
+        if (!requestId) return next(new ErrorHandler("Request ID is required!", 400));
 
-    const requestData = await warehouseReturnandRefund.findById(requestId);
-    if (!requestData) return next(new ErrorHandler("Request not found!", 404));
+        const requestData = await warehouseReturnandRefund.findById(requestId);
+        if (!requestData) return next(new ErrorHandler("Request not found!", 404));
 
-    requestData.returnStatus = "returned";
-    requestData.returnDetails = returnDetails || {};
+        requestData.returnStatus = "returned";
+        requestData.returnDetails = returnDetails || {};
 
-    await requestData.save();
+        await requestData.save();
 
-    res.status(200).json({
-      success: true,
-      message: "Return completed successfully!",
-      data: requestData,
-    });
+        res.status(200).json({
+            success: true,
+            message: "Return completed successfully!",
+            data: requestData,
+        });
 
-  } catch (err) {
-    console.error(err);
-    return next(new ErrorHandler("Failed to complete return", 500));
-  }
+    } catch (err) {
+        console.error(err);
+        return next(new ErrorHandler("Failed to complete return", 500));
+    }
 };
 
 
 //  Process Refund (Wallet / Razorpay)
 export const processRefund = async (req, res, next) => {
-  try {
-    const { requestId, method, amount, refundDetails } = req.body;
+    try {
+        const { requestId, method, amount, refundDetails } = req.body;
 
-    if (!requestId || !method || !amount) {
-      return next(new ErrorHandler("Request ID, method & amount required!", 400));
+        if (!requestId || !method || !amount) {
+            return next(new ErrorHandler("Request ID, method & amount required!", 400));
+        }
+
+        const allowedMethods = ["wallet", "razorpay"];
+        if (!allowedMethods.includes(method)) {
+            return next(new ErrorHandler("Invalid refund method!", 400));
+        }
+
+        const requestData = await warehouseReturnandRefund.findById(requestId);
+        if (!requestData) return next(new ErrorHandler("Request not found!", 404));
+
+        const seller = await user.findById(requestData.sellerId);
+        if (!seller) return next(new ErrorHandler("Seller not found!", 404));
+
+        if (method === "wallet") {
+            seller.walletBalance += amount;
+            await seller.save();
+
+            requestData.refundStatus = "refundedToWallet";
+        }
+
+        if (method === "razorpay") {
+            // Razorpay Integration (mock)
+            requestData.refundStatus = "refundedByRazorpay";
+        }
+
+        requestData.refundDetails = refundDetails || {};
+
+        await requestData.save();
+
+        res.status(200).json({
+            success: true,
+            message: "Refund processed!",
+            data: requestData,
+        });
+
+    } catch (err) {
+        console.error(err);
+        return next(new ErrorHandler("Failed to process refund", 500));
     }
-
-    const allowedMethods = ["wallet", "razorpay"];
-    if (!allowedMethods.includes(method)) {
-      return next(new ErrorHandler("Invalid refund method!", 400));
-    }
-
-    const requestData = await warehouseReturnandRefund.findById(requestId);
-    if (!requestData) return next(new ErrorHandler("Request not found!", 404));
-
-    const seller = await user.findById(requestData.sellerId);
-    if (!seller) return next(new ErrorHandler("Seller not found!", 404));
-
-    if (method === "wallet") {
-      seller.walletBalance += amount;
-      await seller.save();
-
-      requestData.refundStatus = "refundedToWallet";
-    }
-
-    if (method === "razorpay") {
-      // Razorpay Integration (mock)
-      requestData.refundStatus = "refundedByRazorpay";
-    }
-
-    requestData.refundDetails = refundDetails || {};
-
-    await requestData.save();
-
-    res.status(200).json({
-      success: true,
-      message: "Refund processed!",
-      data: requestData,
-    });
-
-  } catch (err) {
-    console.error(err);
-    return next(new ErrorHandler("Failed to process refund", 500));
-  }
 };
 
 
 //  Get All Requests (Admin / Seller)
 export const getAllReturnRefundRequests = async (req, res, next) => {
-  try {
-    const { status, sellerId } = req.query;
+    try {
+        const { status, sellerId } = req.query;
 
-    const filter = {};
-    if (status) filter.status = status;
-    if (sellerId) filter.sellerId = sellerId;
+        const filter = {};
+        if (status) filter.status = status;
+        if (sellerId) filter.sellerId = sellerId;
 
-    const data = await warehouseReturnandRefund.find(filter).populate("sellerId warehouseOrderId");
+        const data = await warehouseReturnandRefund.find(filter).populate("sellerId warehouseOrderId");
 
-    res.status(200).json({
-      success: true,
-      count: data.length,
-      data,
-    });
+        res.status(200).json({
+            success: true,
+            count: data.length,
+            data,
+        });
 
-  } catch (err) {
-    console.error(err);
-    return next(new ErrorHandler("Failed to fetch return/refund data", 500));
-  }
+    } catch (err) {
+        console.error(err);
+        return next(new ErrorHandler("Failed to fetch return/refund data", 500));
+    }
 };
 

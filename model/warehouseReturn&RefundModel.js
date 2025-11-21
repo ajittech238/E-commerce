@@ -8,7 +8,7 @@ const warehouseReturnandRefundSchema = new mongoose.Schema({
         },
         warehouseOrderId : {
             type : mongoose.Schema.Types.ObjectId,
-            ref : "warehouseOrders",
+            ref : "warehouseOrder",
             required : true
         },
         status : {

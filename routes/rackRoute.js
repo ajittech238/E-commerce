@@ -18,4 +18,5 @@ router.get("/getByRack/:id", isAuthenticated, checkPermission('racks', 'read'), 
 router.patch("/updateToRack/:id", isAuthenticated, checkPermission('racks', 'update'), checkEmptyBody, handleValidationErrors, updateProductToRack)
 router.delete("/deleteFromRack/:rackId/:warehouseProductId", isAuthenticated, checkPermission('racks', 'delete'), DeleteProductToRack)
 
+
 export {router as rackRouter}
