@@ -2,6 +2,8 @@ import mongoose from "mongoose"
 import { rack } from "../model/rackModel.js"
 import { rackProducts } from "../model/rackProductModel.js"
 import { ErrorHandler } from "../utils/Errorhandler.js"
+import { warehouse } from "../model/warehouseModel.js"
+import { warehouseProduct } from "../model/warehouseProductModel.js"
 
 export const addRackRoW = async (req, res, next) => {
     try {
@@ -12,6 +14,12 @@ export const addRackRoW = async (req, res, next) => {
         if (!warehouseId || !rackNo || !rowNo || !maxCapacity) {
             return next(new ErrorHandler("All fields are required", 400));
         }
+
+         const warehouseExist = await warehouse.findById(warehouseId);
+        if (!warehouseExist) {
+            return next(new ErrorHandler("Warehouse not found!", 404));
+        }
+
         const isRackNoAndRowNO = await rack.findOne({ warehouseId, rackNo, rowNo })
 
         if (isRackNoAndRowNO) {
@@ -130,75 +138,101 @@ export const deleteRack = async (req, res, next) => {
 
 // rack product management
 
-
 export const addProductToRack = async (req, res, next) => {
     try {
+        const { rackId, warehouseProductId, quantity } = req.body;
 
-        const { rackId, warehouseProductId, quantity } = req.body
-
-         if (!rackId || !warehouseProductId || !quantity) {
+        if (!rackId || !warehouseProductId || !quantity) {
             return next(new ErrorHandler("All fields are required", 400));
         }
-        const isalreadyadded = await rackProducts.findOne({ rackId, warehouseProductId })
 
-        if (isalreadyadded) {
-            return next(new ErrorHandler("product is already added to this rack , you should update if you want to add quantity !", 400))
+        if (!mongoose.Types.ObjectId.isValid(rackId)) {
+            return next(new ErrorHandler("Invalid rackId format!", 400));
+        }
+        if (!mongoose.Types.ObjectId.isValid(warehouseProductId)) {
+            return next(new ErrorHandler("Invalid warehouseProductId format!", 400));
         }
 
-        const rackData = await rackProducts.create({
+        const rackData = await rack.findById(rackId);
+        if (!rackData)
+            return next(new ErrorHandler("Rack not found!", 404));
+
+        const wp = await warehouseProduct.findById(warehouseProductId);
+        if (!wp)
+            return next(new ErrorHandler("Warehouse product not found!", 404));
+
+        // if (rackData.warehouseId.toString() !== wp.warehouseId.toString()) {
+        //     return next(new ErrorHandler("This product does NOT belong to this warehouse!", 400));
+        // }
+
+        const isAlready = await rackProducts.findOne({ rackId, warehouseProductId });
+        if (isAlready) {
+            return next(new ErrorHandler("Product already in this rack", 400));
+        }
+
+        const created = await rackProducts.create({
             rackId,
             warehouseProductId,
             quantity
-        })
+        });
 
         res.status(200).json({
             success: true,
-            message: "product added to rack!",
-            rackData
-        })
-
+            message: "Product added to rack!",
+            created
+        });
 
     } catch (err) {
-        console.error(err)
-        return next(new ErrorHandler(err.message, 500))
+        return next(new ErrorHandler(err.message, 500));
     }
-}
-
+};
 
 
 export const updateProductToRack = async (req, res, next) => {
     try {
+        const rackId = req.params.id;
+        const { warehouseProductId, quantity } = req.body;
 
-        const rackId = req.params.id
-        const { warehouseProductId, quantity } = req.body
-
-         if (!mongoose.Types.ObjectId.isValid(rackId)) {
+        if (!mongoose.Types.ObjectId.isValid(rackId)) {
             return next(new ErrorHandler("Invalid rackId format!", 400));
         }
+        if (!mongoose.Types.ObjectId.isValid(warehouseProductId)) {
+            return next(new ErrorHandler("Invalid warehouseProductId format!", 400));
+        }
 
+       
+        const rackExists = await rack.findById(rackId);
+        if (!rackExists)
+            return next(new ErrorHandler("Rack not found!", 404));
 
-        const rackData = await rackProducts.findOne({ rackId, warehouseProductId })
+      
+        const product = await warehouseProduct.findById(warehouseProductId);
+        if (!product)
+            return next(new ErrorHandler("Warehouse product not found!", 404));
 
+       
+        // if (product.warehouseId.toString() !== rackExists.warehouseId.toString()) {
+        //     return next(new ErrorHandler("Product does not belong to this warehouse!", 400));
+        // }
 
+        const rackData = await rackProducts.findOne({ rackId, warehouseProductId });
         if (!rackData) {
             return next(new ErrorHandler("Product not found in this rack!", 404));
         }
-        rackData.quantity = quantity
 
-        await rackData.save()
+        rackData.quantity = quantity;
+        await rackData.save();
 
         res.status(200).json({
             success: true,
-            message: "product updated to rack!",
+            message: "Product updated successfully!",
             rackData
-        })
-
+        });
 
     } catch (err) {
-        console.error(err)
-        return next(new ErrorHandler(err.message, 500))
+        return next(new ErrorHandler(err.message, 500));
     }
-}
+};
 
 
 

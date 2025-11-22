@@ -6,46 +6,54 @@ import { order } from "../model/orderModel.js"
 import { user } from "../model/userModel.js"
 
 
-export const refundPaymentToWallet = async (req, res, next)=>{
-    try{
-        
-        const {requestId} = req.body
+export const refundPaymentToWallet = async (req, res, next) => {
+    try {
 
-        const returnRefundData = await returnRefund.findOne({_id : requestId})
+        const { requestId } = req.body
+        if (!requestId) {
+            return next(new ErrorHandler("requestId is required !", 400))
+        }
 
+        const returnRefundData = await returnRefund.findOne({ _id: requestId })
+
+        if (!returnRefundData) {
             return next(new ErrorHandler("no return data and refund found !", 404))
+        }
+        const { userId, orderId } = returnRefundData
 
-        const {userId, orderId} = returnRefundData
-
+        if (!userId || !orderId) {
             return next(new ErrorHandler("invalid requestId", 400))
+        }
 
-        let userData = await user.findOne({_id : userId})
+        let userData = await user.findOne({ _id: userId })
 
+        if (!userData) {
             return next(new ErrorHandler("user not found !", 404))
+        }
+        const orderData = await order.findOne({ _id: orderId })
 
-        const orderData = await order.findOne({_id : orderId})
+        if (!orderData) {
+            return next(new ErrorHandler("order not found", 404))
+        }
 
 
-        
-
-        if(returnRefundData.status === "rejected" || returnRefundData.refundStatus === "closed" || returnRefundData.refundStatus === "refundedToWallet" || returnRefundData.refundStatus === "refundedByRazorpay"){
+        if (returnRefundData.status === "rejected" || returnRefundData.refundStatus === "closed" || returnRefundData.refundStatus === "refundedToWallet" || returnRefundData.refundStatus === "refundedByRazorpay") {
             returnRefundData.refundStatus = "closed"
             returnRefundData.status = "rejected"
             await returnRefundData.save()
             return next(new ErrorHandler("request already reslove !", 400))
         }
 
-            return next(new ErrorHandler("order not found", 404))
 
-        if(orderData.isRefunded){
+        if (orderData.isRefunded) {
             return next(new ErrorHandler("payment was already refunded", 400))
         }
 
-        
+
 
         const amount = orderData.finalAmount + orderData.usedWalletAmount
 
-        if(amount > 0){
+        if (amount > 0) {
             userData.walletBalance += amount
             userData = await userData.save()
             orderData.isRefunded = true
@@ -58,46 +66,54 @@ export const refundPaymentToWallet = async (req, res, next)=>{
         await returnRefundData.save()
 
         res.status(200).json({
-            success : true,
-            refundedAmount : amount,
+            success: true,
+            refundedAmount: amount,
             userData
         })
 
-        
-    
-     }
-    catch(err){
+
+
+    }
+    catch (err) {
         console.error(err)
         return next(new ErrorHandler(`${err._message}`, 500))
 
     }
-    
+
 }
 
 
 
-export const paymentRefund = async(req, res, next)=>{
+export const paymentRefund = async (req, res, next) => {
     try {
 
-        const {paymentId, requestId} = req.body
+        const { paymentId, requestId } = req.body
 
-        
-        
-            return next(new ErrorHandler("please enter all the required filled", 400))
 
-        const returnRefundData = await returnRefund.findOne({_id : requestId})
 
-        const {orderId, userId} = returnRefundData
-        
+        if (!paymentId || !requestId) {
+            return next(new ErrorHandler("please enter all the required fields", 400))
+        }
+        const returnRefundData = await returnRefund.findOne({ _id: requestId })
+
+
+
+        if (!returnRefundData) {
             return next(new ErrorHandler("no return data and refund found !", 404))
-        const orderData = await order.findOne({_id : orderId})
+        }
 
+        const { orderId, userId } = returnRefundData
+
+        const orderData = await order.findOne({ _id: orderId })
+
+
+        if (!orderData) {
             return next(new ErrorHandler("order not found !", 400))
+        }
+        // return next(new ErrorHandler("payment is alrady refunded !", 400))
 
-            return next(new ErrorHandler("payment is alrady refunded !", 400))
 
-
-        if(returnRefundData.status === "rejected" || returnRefundData.refundStatus === "closed" || returnRefundData.refundStatus === "refundedToWallet" || returnRefundData.refundStatus === "refundedByRazorpay"){
+        if (returnRefundData.status === "rejected" || returnRefundData.refundStatus === "closed" || returnRefundData.refundStatus === "refundedToWallet" || returnRefundData.refundStatus === "refundedByRazorpay") {
             returnRefundData.refundStatus = "closed"
             returnRefundData.status = "rejected"
             await returnRefundData.save()
@@ -109,14 +125,14 @@ export const paymentRefund = async(req, res, next)=>{
         const amount = orderData.finalAmount
 
         const payment = await razorpayInstance.payments.fetch(paymentId);
-        console.log(payment.status); 
+        console.log(payment.status);
 
 
         const razorpayRefund = await razorpayInstance.payments.refund(paymentId, {
-            amount : amount ? amount * 100 : undefined,
-            speed : "normal",
-            notes : {
-                reason : "customer reqest !"
+            amount: amount ? amount * 100 : undefined,
+            speed: "normal",
+            notes: {
+                reason: "customer reqest !"
             }
         })
 
@@ -125,31 +141,36 @@ export const paymentRefund = async(req, res, next)=>{
 
         await returnRefundData.save()
 
-        res.status(200).json({success : true,
+        res.status(200).json({
+            success: true,
             razorpayRefund
         })
 
-        
 
-    
+
+
     } catch (err) {
         console.error(err)
-        return next(new ErrorHandler(`${err.message? err.message : err.error.description}`, 500))
+        return next(new ErrorHandler(`${err.message ? err.message : err.error.description}`, 500))
     }
 }
 
-export const returnRequest = async (req, res, next)=>{
+export const returnRequest = async (req, res, next) => {
     try {
         const { orderId, returnReason } = req.body
         const userId = req.user._id
 
+        if (!orderId) {
             return next(new ErrorHandler("please enter orderId", 400))
+        }
 
+
+        if (!mongoose.Types.ObjectId.isValid(orderId)) {
             return next(new ErrorHandler("orderId is not valid !", 400))
+        }
+        const alreadyRequested = await returnRefund.findOne({ orderId: orderId })
 
-        const alreadyRequested = await returnRefund.findOne({orderId : orderId})
-
-        if(alreadyRequested){
+        if (alreadyRequested) {
             return next(new ErrorHandler("already requested !", 400))
         }
 
@@ -162,12 +183,12 @@ export const returnRequest = async (req, res, next)=>{
 
 
         res.status(200).json({
-            success : true,
-            message : "request has send successfully !",
+            success: true,
+            message: "request has send successfully !",
             data
         })
 
-    
+
     } catch (err) {
         console.error(err)
         return next(new ErrorHandler(err.message, 500))
@@ -175,148 +196,176 @@ export const returnRequest = async (req, res, next)=>{
 }
 
 
-export const getAlltheRequests = async (req, res, next)=>{
-try {
-    const {status} = req.query
-    const filter = {}
-    if(status) filter.status = status
-    const data = await returnRefund.find(filter)
-  .sort({ createdAt: -1 });
+export const getAlltheRequests = async (req, res, next) => {
+    try {
+        const { status } = req.query
+        const filter = {}
+        if (status) filter.status = status
+        const data = await returnRefund.find(filter)
+            .sort({ createdAt: -1 });
 
-    res.status(200).json({
-        success : true,
-        data
-    })
-    
-} catch (err) {
-    console.error(err)
-    return next(new ErrorHandler(err.message, 500))
-}
-}
+        res.status(200).json({
+            success: true,
+            data
+        })
 
-
-
-export const approveRequest = async (req, res, next)=>{
-try {
-
-    const {requestId} = req.body
-
-        return next(new ErrorHandler("request not found !", 400))
-
-    const alreadyapproved = await returnRefund.findOne({_id : requestId, status : "approved"})
-
-    if(alreadyapproved){
-        return next(new ErrorHandler("request was already approved !",400))
+    } catch (err) {
+        console.error(err)
+        return next(new ErrorHandler(err.message, 500))
     }
-
-
-    const data = await returnRefund.findOne({
-        _id : requestId
-    })
-
-    data.status = "approved"
-
-    await data.save()
-
-    res.status(200).json({
-        success : true,
-        message : "request approved !",
-        data
-    })
- }   
- catch (err) {
-    console.error(err)
-    return next(new ErrorHandler(err.message, 500))
-}
-}
-
-
-export const getOneRequest = async (req, res, next)=>{
-try {
-    const requestId = req.params.id
-
-        return next(new ErrorHandler("requestId is required !", 400))
-
-        return next(new ErrorHandler("requestId is not vaild !", 400))
-
-    const data = await returnRefund.findOne({_id : requestId})
-
-
-    res.status(200).json({
-        success : true,
-        data
-    })
-    
-} catch (err) {
-    console.error(err)
-    return next(new ErrorHandler(err.message, 500))
-}
-}
-
-
-export const rejectRequest = async (req, res, next)=>{
-try {
-    
-    const {rejectReason, requestId} = req.body;
-        return next(new ErrorHandler("requestId is required !", 400))
-
-        return next(new ErrorHandler("requestId is not vaild !", 400))
-
-    const data = await returnRefund.findOne({_id : requestId})
-
-    data.rejectReason = rejectReason;
-    data.status = "rejected"
-    data.refundStatus = "closed"
-    data.returnStatus = "closed"
-    await data.save()
-
-
-    res.status(200).json({
-        success : true,
-        data
-    })
-    
-} catch (err) {
-    console.error(err)
-    return next(new ErrorHandler(err.message, 500))
-}
 }
 
 
 
-export const updateRequest = async (req, res, next)=>{
-try {
-    const requestId = req.params.id
+export const approveRequest = async (req, res, next) => {
+    try {
 
-    const {status, returnStatus, returnDetails} = req.body
+        const { requestId } = req.body
 
-        return next(new ErrorHandler("requestId is required !", 400))
 
-        return next(new ErrorHandler("requestId is not vaild !", 400))
+        if (!requestId) {
+            return next(new ErrorHandler("requestId is required !", 400))
+        }
 
-    const data = await returnRefund.findOne({_id : requestId})
+        if (!mongoose.Types.ObjectId.isValid(requestId)) {
+            return next(new ErrorHandler("request not found !", 400))
+        }
+        const alreadyapproved = await returnRefund.findOne({ _id: requestId, status: "approved" })
 
-        return next(new ErrorHandler("request not found !", 400))
+        if (alreadyapproved) {
+            return next(new ErrorHandler("request was already approved !", 400))
+        }
 
-    if(data.status === "closed"){
-        return next(new ErrorHandler("request was closed !", 400))
+
+        const data = await returnRefund.findOne({
+            _id: requestId
+        })
+
+
+        if (!data) {
+            return next(new ErrorHandler("request not found !", 400))
+        }
+        data.status = "approved"
+
+        await data.save()
+
+        res.status(200).json({
+            success: true,
+            message: "request approved !",
+            data
+        })
     }
-
-    if(status) data.status = status;
-    if(returnStatus) data.returnStatus = returnStatus
-    if(returnDetails) data.returnDetails = returnDetails
-
-    await data.save()
-
-    res.status(200).json({
-        success : true,
-        data
-    })
-    
-} catch (err) {
-    console.error(err)
-    return next(new ErrorHandler(err.message, 500))
+    catch (err) {
+        console.error(err)
+        return next(new ErrorHandler(err.message, 500))
+    }
 }
+
+
+export const getOneRequest = async (req, res, next) => {
+    try {
+        const requestId = req.params.id
+
+        if (!requestId) {
+            return next(new ErrorHandler("requestId is required !", 400))
+        }
+        if (!mongoose.Types.ObjectId.isValid(requestId)) {
+            return next(new ErrorHandler("requestId is not vaild !", 400))
+        }
+
+        const data = await returnRefund.findOne({ _id: requestId })
+
+
+
+        if (!data) {
+            return next(new ErrorHandler("request not found !", 404))
+        }
+        res.status(200).json({
+            success: true,
+            data
+        })
+
+    } catch (err) {
+        console.error(err)
+        return next(new ErrorHandler(err.message, 500))
+    }
+}
+
+
+export const rejectRequest = async (req, res, next) => {
+    try {
+
+        const { rejectReason, requestId } = req.body;
+        if (!requestId) {
+            return next(new ErrorHandler("requestId is required !", 400))
+        }
+
+        if (!mongoose.Types.ObjectId.isValid(requestId)) {
+            return next(new ErrorHandler("requestId is not vaild !", 400))
+        }
+        const data = await returnRefund.findOne({ _id: requestId })
+        if (!data) {
+            return next(new ErrorHandler("request not found !", 400))
+        }
+
+        data.rejectReason = rejectReason;
+        data.status = "rejected"
+        data.refundStatus = "closed"
+        data.returnStatus = "closed"
+        await data.save()
+
+
+        res.status(200).json({
+            success: true,
+            data
+        })
+
+    } catch (err) {
+        console.error(err)
+        return next(new ErrorHandler(err.message, 500))
+    }
+}
+
+
+
+export const updateRequest = async (req, res, next) => {
+    try {
+        const requestId = req.params.id
+
+        const { status, returnStatus, returnDetails } = req.body
+        if (!requestId) {
+            return next(new ErrorHandler("requestId is required !", 400))
+        }
+
+
+        if (!mongoose.Types.ObjectId.isValid(requestId)) {
+            return next(new ErrorHandler("requestId is not vaild !", 400))
+        }
+
+        const data = await returnRefund.findOne({ _id: requestId })
+
+        if (!data) {
+            return next(new ErrorHandler("request not found !", 400))
+        }
+        if (data.status === "closed") {
+            return next(new ErrorHandler("request was closed !", 400))
+        }
+
+        if (status) data.status = status;
+        if (returnStatus) data.returnStatus = returnStatus
+        if (returnDetails) data.returnDetails = returnDetails
+
+        await data.save()
+
+        res.status(200).json({
+            success: true,
+            data
+        })
+
+    } catch (err) {
+        console.error(err)
+        return next(new ErrorHandler(err.message, 500))
+    }
 }
 
 
