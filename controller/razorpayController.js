@@ -100,7 +100,10 @@ export const verifyPaymentAndCreateOrder = async (req, res, next) => {
 
         const userId = req.user._id
         const usercart = await Cart.findOne({userId})
-                return next(new ErrorHandler("cart is empty !", 200))
+        if(!usercart || usercart.items.length === 0){
+           return next(new ErrorHandler("cart is empty !", 200))
+
+        }
 
         
 
