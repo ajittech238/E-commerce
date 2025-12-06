@@ -30,6 +30,7 @@ export const uploadtogoogledrive = async (req, res, next) => {
     res.status(200).json({
       message: `${data.length} image uploaded successfully !`,
       images: img
+   
     })
 
 

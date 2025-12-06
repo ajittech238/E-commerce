@@ -799,8 +799,20 @@ export const requestReturn = async (req, res, next) => {
             return next(new ErrorHandler("Order ID & return reason required", 400));
         }
 
-        const order = await warehouseOrder.findById(warehouseOrderId);
+   // Check order exists
+          const order = await warehouseOrder.findById(warehouseOrderId);
         if (!order) return next(new ErrorHandler("Invalid warehouse order!", 404));
+
+         if (order.sellerId.toString() !== sellerId.toString()) {
+            return next(new ErrorHandler("Unauthorized! This is not your order.", 401));
+        }
+             const alreadyRequested = await warehouseReturnandRefund.findOne({
+            warehouseOrderId
+        });
+
+        if (alreadyRequested) {
+            return next(new ErrorHandler("Return request already created!", 400));
+        }
 
         const data = await warehouseReturnandRefund.create({
             sellerId,

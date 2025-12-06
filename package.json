@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "generate-doc": "node swagger.js",
     "start": "node --watch index.js",
-    "dev":"nodemon index.js"
+    "dev": "nodemon index.js"
   },
   "keywords": [],
   "author": "",
@@ -16,7 +16,10 @@
   "dependencies": {
     "@adminjs/express": "^6.1.1",
     "@adminjs/mongoose": "^4.1.0",
+    "@aws-sdk/client-sts": "^3.940.0",
     "@google/generative-ai": "^0.24.1",
+    "amazon-sp-api": "^1.2.0",
+    "aws-sdk": "^2.1692.0",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
@@ -35,6 +38,7 @@
     "pdfkit": "^0.17.1",
     "razorpay": "^2.9.6",
     "swagger-autogen": "^2.23.7",
+    "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1"
   }
 }

@@ -38,9 +38,15 @@ import { rackRouter } from './routes/rackRoute.js';
 import permissionRouter from './routes/permissionRoute.js';
 import { seedPermissions } from './utils/seedPermissions.js';
 
+// amazon
 
+import {amazonRouter} from './routes/amazonRoutes.js'
+import { flipkartRouter } from './routes/flipkartRoutes.js';
 
-
+import { shopifyRouter } from './routes/ShopifyRoute.js';
+import { ebayRouter } from './routes/EbayRouter.js';
+import { walmartRouter } from './routes/WalmartRoute.js';
+import { wooCommerceRouter } from './routes/WooCommerceRoutes.js';
 
 
 
@@ -59,8 +65,8 @@ app.set('view engine', 'ejs')
 app.use(cors({
   origin: [
     'https://testapix.netlify.app',
-    "http://localhost:3001",
-    "http://localhost:5173",
+    "http://192.168.1.27:3001",
+    "http://192.168.1.27:5173",
     "http://localhost:8081",
     "http://localhost:8080",
     process.env.FRONTEND_URL,
@@ -109,6 +115,13 @@ app.use("/api/v1/returnRefund",returnRouter);
 app.use("/api/v1/warehouse",warehouseRouter);
 app.use("/api/v1/rack",rackRouter);
 app.use("/api/v1/permissions", permissionRouter);
+
+app.use("/api/v1/amazon",amazonRouter)
+app.use("/api/v1/filpkart",flipkartRouter)
+app.use('/api/v1/shopify',shopifyRouter)
+app.use('/api/v1/ebay',ebayRouter)
+app.use('/api/v1/walmart',walmartRouter)
+app.use('/api/v1/wooCommerce',wooCommerceRouter)
 app.use(errorMiddleware)
 
 // Seed permissions on startup
@@ -121,6 +134,6 @@ seedPermissions();
 
 // getreward()  
    
-app.listen(process.env.PORT, ()=>{
+app.listen(process.env.PORT, "0.0.0.0",()=>{
     console.log(`it's running... on port ${process.env.PORT}`)
 })
